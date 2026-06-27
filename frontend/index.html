@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="bookie - A modern, gorgeous horizontal paginated reader for markdown and text files, inspired by physical books." />
+    <title>bookie — Horizontal Book Reader</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Loading overlay -->
+      <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Opening your library...</p>
+      </div>
+
+      <!-- Library Index View -->
+      <div id="library-view" class="view">
+        <header class="library-header">
+          <div class="brand">
+            <span class="brand-logo">📖</span>
+            <h1>bookie</h1>
+          </div>
+          <p class="subtitle">A reader inspired by the page, crafted for the screen.</p>
+          <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search by title or author..." aria-label="Search books" />
+            <span class="search-icon">🔍</span>
+          </div>
+        </header>
+
+        <main class="library-main">
+          <div class="section-title-row">
+            <h2>Your Bookshelf</h2>
+            <span class="book-count" id="book-count">0 books found</span>
+          </div>
+          <div class="bookshelf-grid" id="bookshelf-grid">
+            <!-- Dynamically populated bookshelf cards -->
+          </div>
+        </main>
+
+        <footer class="library-footer">
+          <p>Running on <a href="http://localhost:3001" target="_blank">localhost:3001</a>. Add Markdown files to your <code>books/</code> directory to see them here.</p>
+        </footer>
+      </div>
+
+      <!-- Reader View -->
+      <div id="reader-view" class="view hidden">
+        <header class="reader-header">
+          <button id="back-button" class="btn btn-icon-text" aria-label="Back to library">
+            <span class="icon">←</span> <span class="text">Library</span>
+          </button>
+          
+          <div class="book-info">
+            <h2 id="reader-book-title" class="book-title-display">Book Title</h2>
+            <p id="reader-book-author" class="book-author-display">Author Name</p>
+          </div>
+
+          <div class="reader-actions">
+            <button id="settings-toggle" class="btn btn-icon" aria-label="Reading Settings">⚙️</button>
+          </div>
+        </header>
+
+        <div id="settings-panel" class="settings-panel hidden">
+          <div class="settings-group">
+            <h3>Theme</h3>
+            <div class="theme-buttons">
+              <button class="theme-btn theme-paper active" data-theme="paper">Paper</button>
+              <button class="theme-btn theme-sepia" data-theme="sepia">Sepia</button>
+              <button class="theme-btn theme-charcoal" data-theme="charcoal">Charcoal</button>
+              <button class="theme-btn theme-night" data-theme="night">Night</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3>Font Size</h3>
+            <div class="font-size-control">
+              <button id="font-decrease" class="btn btn-small">A-</button>
+              <span id="font-size-display">18px</span>
+              <button id="font-increase" class="btn btn-small">A+</button>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3>Page Layout</h3>
+            <div class="layout-buttons">
+              <button class="layout-btn active" data-columns="auto">Auto (Responsive)</button>
+              <button class="layout-btn" data-columns="1">1 Column</button>
+              <button class="layout-btn" data-columns="2">2 Columns</button>
+            </div>
+          </div>
+        </div>
+
+        <main class="reader-main">
+          <!-- Floating side navigation buttons for desktop clickers -->
+          <button id="prev-page-btn" class="nav-arrow nav-arrow-left" aria-label="Previous Page">
+            <span>‹</span>
+          </button>
+          
+          <div class="reader-container" id="reader-container">
+            <div class="reader-viewport" id="reader-viewport">
+              <div class="snap-points-container" id="snap-points">
+                <!-- Dynamically populated page snap targets -->
+              </div>
+              <article class="reader-content" id="reader-content">
+                <!-- Parsed markdown will be injected here -->
+              </article>
+            </div>
+          </div>
+
+          <button id="next-page-btn" class="nav-arrow nav-arrow-right" aria-label="Next Page">
+            <span>›</span>
+          </button>
+        </main>
+
+        <footer class="reader-footer">
+          <div class="progress-bar-container" id="progress-container">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+          <div class="footer-meta">
+            <span id="page-indicator">Page 1 of 1</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

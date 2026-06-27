@@ -1,0 +1,50 @@
+# Developer Log
+
+## 2026-06-27
+
+### Initial Setup & Discussion
+- Created the initial response in [CONVERSATION.md](file:///home/rallen/Documents/Devel/Node/bookie/CONVERSATION.md) under `## 1 Gemini` proposing:
+  - **Backend**: Node.js + Express + TypeScript to scan directory and serve Markdown/Text files.
+  - **Frontend**: Vite + TypeScript + Vanilla CSS using CSS Multi-column layout for horizontal book pagination.
+- Initialized this [DEVLOG.md](file:///home/rallen/Documents/Devel/Node/bookie/DEVLOG.md) to keep track of development actions.
+- Updated [CONVERSATION.md](file:///home/rallen/Documents/Devel/Node/bookie/CONVERSATION.md) with details about Git integration (initializing a Git repo and configuring `.gitignore`).
+
+### Monorepo and Environment Setup
+- Initialized Git repository and created root [.gitignore](file:///home/rallen/Documents/Devel/Node/bookie/.gitignore).
+- Configured a monorepo setup at the root [package.json](file:///home/rallen/Documents/Devel/Node/bookie/package.json) using npm workspaces (`frontend` and `backend`), with a unified `npm run build` and `npm run dev` setup using `concurrently`.
+- Installed dependencies including Express, CORS, TypeScript, `tsx`, Vite, and `marked` (markdown parser).
+
+### Backend Implementation
+- Created the Express backend server under [backend/src/index.ts](file:///home/rallen/Documents/Devel/Node/bookie/backend/src/index.ts).
+- Implemented target directory resolution for scanning book files (supports command line argument, `BOOKS_DIR` env variable, or default root `/books` folder).
+- Implemented basic YAML frontmatter parsing to extract titles and authors from Markdown files.
+- Implemented API endpoints:
+  - `GET /api/books`: Lists all available Markdown and Text books with metadata.
+  - `GET /api/books/:filename`: Serves book contents with YAML frontmatter removed.
+- Enabled production static file serving so that running the compiled backend also serves the frontend build files from the client `dist` directory.
+
+### Frontend Implementation
+- Configured Vite and Tailwind-free Vanilla CSS build settings under `/frontend`.
+- Built the UI shell in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) including:
+  - Glassmorphic Library View with search filtering and dynamic bookshelf cards.
+  - Header showing book metadata, a back button, and settings trigger.
+  - Floating Settings panel with reading themes (Paper, Sepia, Charcoal, Night), font sizing (12px to 32px), and layout modes (Auto, 1 Column, 2 Columns).
+  - Reader area featuring left/right navigation arrows, dynamic horizontal pagination layout, and bottom progress bar/page numbers indicators.
+- Created styling in [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css):
+  - Theme colors mapped via CSS custom variables (`:root`, `[data-theme="..."]`).
+  - Font rendering optimization utilizing Google Fonts (Inter for UI, Literata for book text, Instrument Serif for headers).
+  - Dynamic page-splitting using CSS columns.
+- Coded client logic in [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
+  - Integrated `marked` to render parsed Markdown content.
+  - Formulated a pagination engine that dynamically injects `.snap-target` layout guides into the scroll container based on `scrollWidth` / `clientWidth` to ensure robust snapping.
+  - Calculated page metrics: updates progress percentages and outputs readable strings (e.g. "Pages 3-4 of 12").
+  - Programmed custom mouse drag-to-scroll page swiping.
+
+### Content Creation
+- Set up local [/books](file:///home/rallen/Documents/Devel/Node/bookie/books/) directory with test files:
+  - [alice.md](file:///home/rallen/Documents/Devel/Node/bookie/books/alice.md) (Full text of Alice's Adventures in Wonderland extracted from Project Gutenberg eBook #11)
+  - [sherlock.md](file:///home/rallen/Documents/Devel/Node/bookie/books/sherlock.md) (Full text of A Scandal in Bohemia extracted from Project Gutenberg eBook #1661)
+  - [formatting-test.md](file:///home/rallen/Documents/Devel/Node/bookie/books/formatting-test.md) (formatting elements to check css styling)
+
+
+
