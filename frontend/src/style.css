@@ -579,10 +579,10 @@ h3 {
 }
 
 .snap-target {
-  width: 100vw;
   height: 100%;
   scroll-snap-align: start;
   flex-shrink: 0;
+  /* width is set by JS to exact viewport.clientWidth pixels */
 }
 
 /* The actual text content layout */
@@ -596,10 +596,9 @@ h3 {
   pointer-events: auto;
   z-index: 2;
 
-  /* CSS Columns setup */
+  /* CSS Columns setup — column-width is overridden by JS with exact px */
   column-fill: auto;
   column-gap: 0;
-  column-width: 100vw;
   
   font-family: var(--font-serif);
   font-size: var(--reader-font-size, 18px);
@@ -620,14 +619,12 @@ h3 {
   margin-top: 0;
 }
 
-/* CSS column split rules for 2 columns layout */
+/* CSS column split rules — column-width is overridden by JS with exact px */
 .reader-content.two-columns {
-  column-width: 50vw;
   column-gap: 0;
 }
 
 .reader-content.one-column {
-  column-width: 100vw;
   column-gap: 0;
 }
 

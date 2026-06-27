@@ -496,8 +496,13 @@ function recalculatePages() {
   // Capture current progress before layout shifts
   const prevProgress = getStoredProgressFraction();
   
-  // Reset content width to allow columns to flow naturally for scrollWidth measurement
+  // Measure the exact pixel width of the viewport (not 100vw, which can differ on mobile)
+  const pageWidth = viewport.clientWidth;
+  if (pageWidth <= 0) return;
+
+  // Reset content width and column-width to allow columns to flow naturally for measurement
   content.style.width = 'auto';
+  content.style.columnWidth = `${pageWidth}px`;
 
   // Set layout class based on config and screen width
   const isWide = window.innerWidth > 768;
@@ -509,14 +514,12 @@ function recalculatePages() {
   if (layoutCols === '2' || (layoutCols === 'auto' && isWide)) {
     content.classList.add('two-columns');
     actualCols = 2;
+    content.style.columnWidth = `${pageWidth / 2}px`;
   } else {
     content.classList.add('one-column');
     actualCols = 1;
+    content.style.columnWidth = `${pageWidth}px`;
   }
-  
-  // Get viewport page dimensions
-  const pageWidth = viewport.clientWidth;
-  if (pageWidth <= 0) return;
   
   // Measure total scroll width
   const totalScrollWidth = content.scrollWidth;
@@ -525,16 +528,16 @@ function recalculatePages() {
   state.totalPagesSpreads = numSpreads;
   
   // Lock content width to exactly match calculated page spreads
-  content.style.width = `${numSpreads * 100}vw`;
+  content.style.width = `${numSpreads * pageWidth}px`;
 
   // Re-generate snap targets to set viewport bounds and snapping
   DOM.snapPoints.innerHTML = '';
-  // Set the snap points container width to match the pages
-  DOM.snapPoints.style.width = `${numSpreads * 100}vw`;
+  DOM.snapPoints.style.width = `${numSpreads * pageWidth}px`;
   
   for (let i = 0; i < numSpreads; i++) {
     const snapTarget = document.createElement('div');
     snapTarget.className = 'snap-target';
+    snapTarget.style.width = `${pageWidth}px`;
     DOM.snapPoints.appendChild(snapTarget);
   }
   
