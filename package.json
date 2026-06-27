@@ -11,7 +11,9 @@
     "dev": "concurrently --kill-others \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build:frontend": "npm run build -w frontend",
     "build:backend": "npm run build -w backend",
-    "build": "npm run build:backend && npm run build:frontend"
+    "build": "npm run build:backend && npm run build:frontend",
+    "start:backend": "npm run start -w backend",
+    "start": "npm run start -w backend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -76,6 +76,11 @@
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to link to the new license.
 - Staged, committed, and pushed the licensed files to GitHub.
 
+### Bug Fixes
+- Added `start:backend` and `start` scripts to the root [package.json](file:///home/rallen/Documents/Devel/Node/bookie/package.json) to resolve the `Missing script: "start:backend"` error when attempting to run in production.
+- Verified successful launch of the production Express server on port 3001.
+
+
 
 
 
