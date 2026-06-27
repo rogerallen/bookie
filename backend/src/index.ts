@@ -40,9 +40,10 @@ interface BookMetadata {
 }
 
 function getBookMetadata(filename: string, filePath: string): BookMetadata {
+  const baseName = path.basename(filename);
   const defaultMeta: BookMetadata = {
     filename,
-    title: filename.replace(/\.(md|txt)$/i, '').replace(/[-_]/g, ' '),
+    title: baseName.replace(/\.(md|txt)$/i, '').replace(/[-_]/g, ' '),
     author: 'Unknown'
   };
 
@@ -72,18 +73,36 @@ function getBookMetadata(filename: string, filePath: string): BookMetadata {
   return defaultMeta;
 }
 
-// GET /api/books - lists all books in the target folder
+// Recursive helper to list all markdown/text files in directory
+function scanBooksDir(dir: string, baseDir: string = booksDir): string[] {
+  let results: string[] = [];
+  if (!fs.existsSync(dir)) return results;
+
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    if (stat.isDirectory()) {
+      results = results.concat(scanBooksDir(filePath, baseDir));
+    } else {
+      const ext = path.extname(file).toLowerCase();
+      if (ext === '.md' || ext === '.txt') {
+        const relativePath = path.relative(baseDir, filePath).replace(/\\/g, '/');
+        results.push(relativePath);
+      }
+    }
+  }
+  return results;
+}
+
+// GET /api/books - lists all books in the target folder recursively
 app.get('/api/books', (req, res) => {
   try {
     if (!fs.existsSync(booksDir)) {
       return res.json([]);
     }
 
-    const files = fs.readdirSync(booksDir);
-    const bookFiles = files.filter(file => {
-      const ext = path.extname(file).toLowerCase();
-      return ext === '.md' || ext === '.txt';
-    });
+    const bookFiles = scanBooksDir(booksDir);
 
     const books = bookFiles.map(filename => {
       const filePath = path.join(booksDir, filename);
@@ -96,22 +115,24 @@ app.get('/api/books', (req, res) => {
   }
 });
 
-// GET /api/books/:filename - serves the raw content of the book
-app.get('/api/books/:filename', (req, res) => {
-  const { filename } = req.params;
+// GET /api/books/:filename(*) - serves the raw content of the book
+app.get('/api/books/:filename(*)', (req, res) => {
+  const requestedFile = req.params.filename;
   
   // Prevent directory traversal
-  const safeFilename = path.basename(filename);
-  const filePath = path.join(booksDir, safeFilename);
+  const filePath = path.resolve(booksDir, requestedFile);
 
-  if (!fs.existsSync(filePath)) {
+  if (!filePath.startsWith(booksDir)) {
+    return res.status(403).json({ error: 'Access denied: Path traversal detected' });
+  }
+
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     return res.status(404).json({ error: 'Book file not found' });
   }
 
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
-    // We'll also return metadata alongside the content
-    const metadata = getBookMetadata(safeFilename, filePath);
+    const metadata = getBookMetadata(requestedFile, filePath);
 
     // Strip frontmatter from content to make parsing on client easier
     let cleanContent = content;

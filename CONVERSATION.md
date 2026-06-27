@@ -64,3 +64,20 @@ If you agree, I will perform the following actions:
 
 All of these tasks have been successfully completed. I have also stopped the development servers and created a comprehensive [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) as requested.
 
+## 2 Roger
+
+You did an excellent job.  One thing I don't want is for people to accidentally check in copyrighted text files to this repo.  I think we may want to have a way to separate public-domain books that we could check-in vs. copyrighted or personal files that users may want to keep separate and out of this git repo.  The app does not need to make this distinction.
+
+## 2 Gemini
+
+That is an excellent point, Roger. We definitely want to prevent accidental commits of copyrighted material or personal books, while keeping the public-domain test files readily available in the repository.
+
+### Proposed Solution: Git-Ignored Local Folder
+We can configure a designated subfolder inside `books/` specifically for personal or copyrighted files, and tell Git to ignore it completely:
+1. **Configure `.gitignore`**: Add `books/local/` to our root `.gitignore`. This ensures that any files placed in this folder (e.g. `books/local/my-copyrighted-book.md`) are never staged or committed.
+2. **Recursive Scanner in Backend**: Update our backend scanner in [backend/src/index.ts](file:///home/rallen/Documents/Devel/Node/bookie/backend/src/index.ts) to recursively traverse the target books directory. This allows the backend to find and serve files in both the main `books/` directory (for public-domain books) and `books/local/` (for personal books), without the app needing to treat them differently.
+3. **Prevent Path Traversal**: Ensure our backend safe-path resolution handles subdirectory paths (like `local/my-book.md`) securely by verifying that the resolved path stays within the root `books/` directory.
+4. **Document in README**: Add a clear note in [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) explaining how users can create and use the `books/local/` directory for their personal library to guarantee privacy from Git.
+
+I will proceed with these changes!
+

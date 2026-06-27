@@ -55,6 +55,16 @@
 - Created a comprehensive [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) detailing project features, Node.js setup guides for beginners, monorepo run commands, and instructions for configuring library target directories.
 - Staged and committed the documentation files.
 
+### Private Books Separation
+- Updated root [.gitignore](file:///home/rallen/Documents/Devel/Node/bookie/.gitignore) to ignore `books/local/` so personal/copyrighted books are never staged or checked in.
+- Modified [backend/src/index.ts](file:///home/rallen/Documents/Devel/Node/bookie/backend/src/index.ts) to recursively scan subdirectories of the library path.
+- Updated `getBookMetadata` fallback title generator to use the base filename instead of the full relative path.
+- Extended `GET /api/books/:filename` using Express wildcard parameters (`:filename(*)`) to support requesting nested files.
+- Programmed path traversal protection checks in the content router using absolute path resolution and prefix validation.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document the usage of the git-ignored `books/local/` folder.
+- Staged and committed the code and documentation changes.
+
+
 
 
 

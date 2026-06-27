@@ -52,11 +52,12 @@ npm -v
 
 ## 3. Adding Your Books
 
-By default, **bookie** scans a folder called `books/` in the project root.
+By default, **bookie** scans a folder called `books/` in the project root recursively.
 
 1. Create a `books/` folder in the project root if it does not exist.
 2. Copy your Markdown (`.md`) or text (`.txt`) files into it.
-3. (Optional) Prepend a YAML frontmatter block to the top of your files to configure the title and author. If omitted, the app will use the filename as the title.
+3. **Personal/Copyrighted Books**: To prevent committing personal or copyrighted texts into Git, place them inside a subfolder named `books/local/` (e.g., `books/local/my-novel.md`). The root `.gitignore` is configured to ignore the entire `books/local/` directory, while the backend recursively scans it so the books still appear in your browser.
+4. (Optional) Prepend a YAML frontmatter block to the top of your files to configure the title and author. If omitted, the app will use the filename as the title.
 
 ### Book Frontmatter Example (`books/my-book.md`)
 ```markdown
