@@ -151,6 +151,25 @@ Once installed, **bookie** launches in a standalone, distraction-free app window
 - If the server stops or you lose connection, **bookie** will show an amber **Working Offline** banner at the top, list only your downloaded books on the bookshelf, and let you read them in full!
 - Click the **💾** badge on any book to remove it from offline storage and free up space.
 
+### Important: Mobile Offline & HTTPS Requirements
+Modern web browsers enforce strict security rules: **Service Workers** (which allow apps to load their layouts/code when the server is shut down) will **only register in Secure Contexts (HTTPS or localhost)**.
+
+If you access the app on your mobile phone via an insecure HTTP network address (like `http://192.168.1.50:3001` or `http://my-hostname:3001`):
+- The app will let you download books and read them *as long as you keep the browser tab open* (utilizing our transparent `localStorage` fallback).
+- However, if you close the tab or attempt to launch the installed home-screen icon while the server is stopped, it will show "This site can't be reached" because the browser blocks the Service Worker from caching the HTML/JS/CSS files over insecure HTTP.
+
+To enable full, off-grid standalone loading on your phone:
+1. **Option A: Secure Tunnel (Recommended)**: Use a tool like [ngrok](https://ngrok.com/) to expose your local port securely:
+   ```bash
+   ngrok http 3001
+   ```
+   Open the secure `https://xxxx.ngrok-free.app` URL on your phone. Because it uses HTTPS, the Service Worker will register successfully, allow PWA home-screen installation, and let you load the reader completely offline.
+2. **Option B: Chrome USB Port Forwarding**: 
+   - Connect your Android phone to your computer via USB.
+   - Open Chrome on your desktop and navigate to `chrome://inspect/#devices`.
+   - Click **Port forwarding...** and map port `3001` to `localhost:3001`.
+   - Open `http://localhost:3001` on your phone. Because Chrome treats `localhost` as a secure context, the Service Worker will register and cache the shell assets for offline use.
+
 ---
 
 ## License
