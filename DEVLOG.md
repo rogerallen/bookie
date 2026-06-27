@@ -46,5 +46,10 @@
   - [sherlock.md](file:///home/rallen/Documents/Devel/Node/bookie/books/sherlock.md) (Full text of A Scandal in Bohemia extracted from Project Gutenberg eBook #1661)
   - [formatting-test.md](file:///home/rallen/Documents/Devel/Node/bookie/books/formatting-test.md) (formatting elements to check css styling)
 
+### Git Version Control
+- Staged all initialized project files, monorepo structures, Express APIs, Vite clients, and full-length Gutenberg text assets.
+- Made the initial repository commit: `feat: init bookie project with Express backend, Vite TypeScript frontend, and Gutenberg books`.
+
+
 
 
