@@ -67,6 +67,8 @@
 ### GitHub Integration
 - Configured and linked the local repository to a new public GitHub repository: [rogerallen/bookie](https://github.com/rogerallen/bookie).
 - Pushed all initial commits and branch history to GitHub.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document and link to [CONVERSATION.md](file:///home/rallen/Documents/Devel/Node/bookie/CONVERSATION.md) and [DEVLOG.md](file:///home/rallen/Documents/Devel/Node/bookie/DEVLOG.md).
+
 
 
 

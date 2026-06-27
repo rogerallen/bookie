@@ -2,6 +2,10 @@
 
 **bookie** is a modern, responsive Single Page Web Application (SPA) designed to read text and Markdown files like a physical book. It flows text horizontally across pages instead of vertical scrolling, automatically scaling the page layout dynamically to the height and width of your screen.
 
+This project is built collaboratively by Roger and Gemini. The design process and development logs are documented in:
+- [CONVERSATION.md](CONVERSATION.md): The call-and-response design discussion, technology choices, and architectural planning.
+- [DEVLOG.md](DEVLOG.md): The chronological developer log tracking all file additions, project structure configurations, and git milestones.
+
 ---
 
 ## Features
