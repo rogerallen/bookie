@@ -50,6 +50,12 @@
 - Staged all initialized project files, monorepo structures, Express APIs, Vite clients, and full-length Gutenberg text assets.
 - Made the initial repository commit: `feat: init bookie project with Express backend, Vite TypeScript frontend, and Gutenberg books`.
 
+### Project Documentation & Cleanup
+- Stopped the concurrent backend and frontend development servers.
+- Created a comprehensive [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) detailing project features, Node.js setup guides for beginners, monorepo run commands, and instructions for configuring library target directories.
+- Staged and committed the documentation files.
+
+
 
 
 
