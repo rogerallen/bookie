@@ -99,7 +99,7 @@
   - Implemented `online`/`offline` transition state detection triggers.
   - Programmed cache-first opening fallback on `openBook` using the storage wrappers.
   - Added list fallback to `localStorage` metadata when querying the bookshelf offline.
-- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation, book download instructions, and mobile secure context (HTTPS/localhost) prerequisites for off-grid launches.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation, book download instructions, secure context mobile prerequisites, and Option C detailing Tailscale HTTPS & Serve configuration.
 
 
 

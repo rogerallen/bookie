@@ -169,6 +169,15 @@ To enable full, off-grid standalone loading on your phone:
    - Open Chrome on your desktop and navigate to `chrome://inspect/#devices`.
    - Click **Port forwarding...** and map port `3001` to `localhost:3001`.
    - Open `http://localhost:3001` on your phone. Because Chrome treats `localhost` as a secure context, the Service Worker will register and cache the shell assets for offline use.
+3. **Option C: Tailscale HTTPS & Serve (Best for Tailscale users)**: If both your phone and computer are on your Tailscale VPN (Tailnet), you can use Tailscale's native secure reverse proxy.
+   - Ensure **HTTPS Certificates** are enabled in your [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys).
+   - In a terminal on your computer, run:
+     ```bash
+     tailscale serve https:443 / http://localhost:3001
+     ```
+     *(This maps secure port 443 on your Tailscale hostname directly to your local port 3001).*
+   - Open your phone and go to `https://your-machine-name.your-tailnet-domain.ts.net`.
+   - Because Tailscale automatically provisions a valid, trusted Let's Encrypt SSL certificate for your tailnet domain, it is a secure context. The Service Worker will register and cache all shell assets, allowing full offline home-screen launches!
 
 ---
 
