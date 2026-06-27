@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bookie-shell-v8';
+const CACHE_NAME = 'bookie-shell-v9';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
