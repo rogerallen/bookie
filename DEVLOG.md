@@ -101,10 +101,11 @@
   - Added list fallback to `localStorage` metadata (which only saves lightweight book info and filenames) when querying the bookshelf offline.
   - Created `fetchWithTimeout` wrapper in `main.ts` to abort network calls after a 3-second to 10-second threshold, eliminating infinite loading spinner hangs when the server is stopped or when network connections transition.
 - Updated [frontend/public/sw.js](file:///home/rallen/Documents/Devel/Node/bookie/frontend/public/sw.js):
-  - Incremented cache to `bookie-shell-v2`.
-  - Added network-first interceptor caching for `/api/books` to allow complete offline bookshelf viewing via the service worker.
+  - Incremented cache to `bookie-shell-v3`.
+  - Replaced the Network-First shell caching with a pure **Cache-First** strategy for all static assets (HTML/JS/CSS). This ensures static assets load instantly offline and prevents splash-screen hangs caused by pending TCP network requests.
+  - Added an offline checker inside the `/api/books` intercept: if `navigator.onLine` is false, it returns the cached list immediately without trying to perform a network fetch, preventing network-state resolution hangs.
   - Excluded the `bookie-api-v1` cache from activation cleanup.
-- Added visible `version 1.2.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
+- Added visible `version 1.3.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation, book download instructions, secure context mobile prerequisites, and Option C detailing Tailscale HTTPS & Serve configuration (updated to use the non-deprecated CLI format `tailscale serve --bg http://localhost:3001`).
 
 

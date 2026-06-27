@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bookie-shell-v2';
+const CACHE_NAME = 'bookie-shell-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -41,6 +41,12 @@ self.addEventListener('fetch', (e) => {
 
   // Cache API index (/api/books) with Network-First strategy to support offline list viewing
   if (url.pathname.endsWith('/api/books')) {
+    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+    if (isOffline) {
+      e.respondWith(caches.match(e.request));
+      return;
+    }
+
     e.respondWith(
       fetch(e.request)
         .then((response) => {
@@ -65,31 +71,30 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Handle static assets and shell pages
+  // Handle static assets and shell pages (Cache-First, fallback to Network)
   e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        // Cache successful responses for subsequent offline loads
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // If network request fails, look in cache
-        return caches.match(e.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
+    caches.match(e.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(e.request)
+        .then((response) => {
+          // Cache successful responses for subsequent offline loads
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(e.request, responseClone);
+            });
           }
-          
+          return response;
+        })
+        .catch(() => {
           // Fallback to index.html for SPA client routing
           if (e.request.mode === 'navigate') {
             return caches.match('/');
           }
         });
-      })
+    })
   );
 });
