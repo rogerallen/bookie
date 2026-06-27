@@ -64,6 +64,11 @@
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document the usage of the git-ignored `books/local/` folder.
 - Staged and committed the code and documentation changes.
 
+### GitHub Integration
+- Configured and linked the local repository to a new public GitHub repository: [rogerallen/bookie](https://github.com/rogerallen/bookie).
+- Pushed all initial commits and branch history to GitHub.
+
+
 
 
 
