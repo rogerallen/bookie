@@ -104,6 +104,7 @@
   - Incremented cache to `bookie-shell-v2`.
   - Added network-first interceptor caching for `/api/books` to allow complete offline bookshelf viewing via the service worker.
   - Excluded the `bookie-api-v1` cache from activation cleanup.
+- Added visible `version 1.2.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation, book download instructions, secure context mobile prerequisites, and Option C detailing Tailscale HTTPS & Serve configuration (updated to use the non-deprecated CLI format `tailscale serve --bg http://localhost:3001`).
 
 
