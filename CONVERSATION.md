@@ -154,3 +154,31 @@ If you agree, I will perform the following actions:
 
 Please let me know if this looks good to you!
 
+## 5 Roger
+
+The next feature to add is to make sure we save progress and cache that locally.  A user should be able to read until page N, shut the app down and when they return to the book they should open up page N.  A progress marker should also show in the main page, too.  
+
+## 5 Gemini
+
+I have successfully added the **Reading Progress Tracker** and **Bookshelf Progress Markers**!
+
+Here is the design of the progress caching system:
+
+### 1. Architectural Details of Reading Progress
+1. **Relative Progress Fraction (Robust across resizing & rotation)**:
+   - Saving a absolute page number (e.g. `Page 4`) is fragile because rotating a phone or resizing a browser window recalculates the horizontal columns and changes the total number of pages.
+   - Instead, we track and save progress as a **decimal fraction** (`scrollLeft / maxScroll`) between `0.0` and `1.0`.
+   - On restoration, we calculate the exact target scroll position: `fraction * newMaxScroll`, and snap it to the nearest page spread. This ensures the user lands on the exact same paragraph regardless of font size, layout, or screen orientation.
+2. **Debounced Local Storage Saving**:
+   - As the user scrolls or drags, progress is written to `localStorage` under `bookie-reading-progress` (keyed by `filename`). To maximize performance and prevent heavy, redundant disk writes, updates are debounced by `300ms`.
+3. **Smart Position Restoration**:
+   - Reading progress is restored immediately after the layout engine finishes measuring pages (`recalculatePages()`).
+   - Progress fraction is also saved before resizes/orientation changes and restored after to ensure transitions are smooth.
+4. **Main Page Bookshelf Markers**:
+   - The bookshelf card renderer checks the reading progress history.
+   - If a book has progress (> 0%), it renders a gorgeous visual progress bar at the bottom of the book card (e.g. showing `45% read` or `Finished 🎉` for completed books).
+   - Returning to the bookshelf automatically triggers a re-render to ensure card markers update instantly.
+
+I have updated [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) and [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css), incremented the build version to `version 1.4.0` (precached in Service Worker `v4`), and successfully pushed all commits to Git!
+
+

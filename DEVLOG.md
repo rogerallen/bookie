@@ -105,8 +105,15 @@
   - Replaced the Network-First shell caching with a pure **Cache-First** strategy for all static assets (HTML/JS/CSS). This ensures static assets load instantly offline and prevents splash-screen hangs caused by pending TCP network requests.
   - Added an offline checker inside the `/api/books` intercept: if `navigator.onLine` is false, it returns the cached list immediately without trying to perform a network fetch, preventing network-state resolution hangs.
   - Excluded the `bookie-api-v1` cache from activation cleanup.
-- Added visible `version 1.3.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
+- Added visible `version 1.4.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
+- Extended [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
+  - Created `saveBookProgress`, `restoreBookProgress`, `getStoredProgressFraction`, and `restoreBookProgressByFraction` helpers.
+  - Saved relative progress (decimal fraction) inside `updatePaginationIndicator` to `localStorage` (debounced by 300ms) to ensure it works across device orientations and resizes.
+  - Restored saved relative scroll progress upon opening books and window resizing.
+  - Modified card renderer to load progress history and output custom progress bar visual wrappers on the bookshelf.
+  - Triggered bookshelf re-rendering on library back navigation to show updated progress bars immediately.
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation, book download instructions, secure context mobile prerequisites, and Option C detailing Tailscale HTTPS & Serve configuration (updated to use the non-deprecated CLI format `tailscale serve --bg http://localhost:3001`).
+- Appended `## 5 Gemini` design details in [CONVERSATION.md](file:///home/rallen/Documents/Devel/Node/bookie/CONVERSATION.md).
 
 
 

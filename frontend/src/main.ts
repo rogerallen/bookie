@@ -190,6 +190,15 @@ function renderBookshelf(books: BookMetadata[]) {
     return;
   }
 
+  // Load progress details
+  const progressMapRaw = localStorage.getItem('bookie-reading-progress');
+  let progressMap: Record<string, { progressFraction: number }> = {};
+  if (progressMapRaw) {
+    try {
+      progressMap = JSON.parse(progressMapRaw);
+    } catch (_) {}
+  }
+
   let html = '';
   if (isOffline) {
     html += `<div class="offline-shelf-indicator">📂 Showing downloaded books available for offline reading</div>`;
@@ -202,12 +211,29 @@ function renderBookshelf(books: BookMetadata[]) {
     const downloadTitle = isDownloaded ? 'Stored Offline (Click to remove)' : 'Download for Offline';
     const badgeText = isDownloaded ? '<span class="offline-ready-badge">✓ Offline</span>' : '';
 
+    const progress = progressMap[book.filename];
+    let progressHtml = '';
+    if (progress && typeof progress.progressFraction === 'number') {
+      const pct = Math.round(progress.progressFraction * 100);
+      if (pct > 0) {
+        progressHtml = `
+          <div class="card-progress-container" title="${pct}% read">
+            <span class="card-progress-text">${pct >= 99 ? 'Finished 🎉' : `${pct}% read`}</span>
+            <div class="card-progress-bar">
+              <div class="card-progress-fill" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     return `
       <div class="book-card" data-filename="${encodeURIComponent(book.filename)}">
         <div class="book-card-meta">
           <h3 class="book-card-title">${escapeHtml(book.title)}</h3>
           <p class="book-card-author">by ${escapeHtml(book.author)}</p>
         </div>
+        ${progressHtml}
         <div class="book-card-footer">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span class="book-card-badge">${escapeHtml(getFileExtension(book.filename).toUpperCase())}</span>
@@ -283,6 +309,56 @@ async function removeBookOffline(filename: string): Promise<void> {
   const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
   const cache = await caches.open(BOOK_CACHE_NAME);
   await cache.delete(cacheUrl);
+}
+
+// --- Reading Progress Trackers (localStorage cached) ---
+let saveProgressTimeout: any = null;
+function saveBookProgress(filename: string, progressFraction: number) {
+  clearTimeout(saveProgressTimeout);
+  saveProgressTimeout = setTimeout(() => {
+    try {
+      const progressMapRaw = localStorage.getItem('bookie-reading-progress') || '{}';
+      const progressMap = JSON.parse(progressMapRaw);
+      progressMap[filename] = {
+        progressFraction,
+        lastReadTime: Date.now()
+      };
+      localStorage.setItem('bookie-reading-progress', JSON.stringify(progressMap));
+    } catch (e) {
+      console.error('[Progress] Failed to save reading progress:', e);
+    }
+  }, 300);
+}
+
+function restoreBookProgress(filename: string) {
+  try {
+    const progressMapRaw = localStorage.getItem('bookie-reading-progress');
+    if (!progressMapRaw) return;
+    const progressMap = JSON.parse(progressMapRaw);
+    const progress = progressMap[filename];
+    if (progress && typeof progress.progressFraction === 'number') {
+      restoreBookProgressByFraction(progress.progressFraction);
+    }
+  } catch (e) {
+    console.error('[Progress] Failed to restore reading progress:', e);
+  }
+}
+
+function getStoredProgressFraction(): number {
+  const viewport = DOM.readerViewport;
+  const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+  return maxScroll > 0 ? viewport.scrollLeft / maxScroll : 0;
+}
+
+function restoreBookProgressByFraction(fraction: number) {
+  const viewport = DOM.readerViewport;
+  const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+  if (maxScroll > 0) {
+    const targetScroll = fraction * maxScroll;
+    const pageWidth = viewport.clientWidth;
+    const targetSpread = Math.round(targetScroll / pageWidth);
+    viewport.scrollLeft = targetSpread * pageWidth;
+  }
 }
 
 // --- Download & Delete Book Flows ---
@@ -400,6 +476,7 @@ async function openBook(filename: string) {
     // Calculate page layout and sizes after transition
     setTimeout(() => {
       recalculatePages();
+      restoreBookProgress(filename);
     }, 50);
   } catch (err) {
     console.error('Error opening book:', err);
@@ -415,6 +492,9 @@ function recalculatePages() {
 
   const viewport = DOM.readerViewport;
   const content = DOM.readerContent;
+  
+  // Capture current progress before layout shifts
+  const prevProgress = getStoredProgressFraction();
   
   // Set layout class based on config and screen width
   const isWide = window.innerWidth > 768;
@@ -453,6 +533,9 @@ function recalculatePages() {
   }
   
   updatePaginationIndicator(actualCols);
+  
+  // Restore layout position to same relative progress
+  restoreBookProgressByFraction(prevProgress);
 }
 
 function updatePaginationIndicator(actualCols: number) {
@@ -487,6 +570,13 @@ function updatePaginationIndicator(actualCols: number) {
     } else {
       DOM.pageIndicator.textContent = `Pages ${startPage}–${endPage} of ${state.totalPagesSpreads * 2}`;
     }
+  }
+
+  // Save progress fraction locally
+  if (state.activeBook) {
+    const maxScroll = viewport.scrollWidth - pageWidth;
+    const progressFraction = maxScroll > 0 ? scrollLeft / maxScroll : 0;
+    saveBookProgress(state.activeBook.metadata.filename, progressFraction);
   }
 }
 
@@ -575,6 +665,7 @@ function setupGlobalListeners() {
   DOM.backButton.addEventListener('click', () => {
     switchView('library');
     state.activeBook = null;
+    renderBookshelf(state.books); // Re-render to show updated progress markers immediately
   });
   
   DOM.prevPageBtn.addEventListener('click', prevPage);
