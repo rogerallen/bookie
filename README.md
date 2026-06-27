@@ -173,9 +173,9 @@ To enable full, off-grid standalone loading on your phone:
    - Ensure **HTTPS Certificates** are enabled in your [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys).
    - In a terminal on your computer, run:
      ```bash
-     tailscale serve https:443 / http://localhost:3001
+     tailscale serve --bg http://localhost:3001
      ```
-     *(This maps secure port 443 on your Tailscale hostname directly to your local port 3001).*
+     *(This starts serve in the background, proxying HTTPS on your tailnet address to your local port 3001).*
    - Open your phone and go to `https://your-machine-name.your-tailnet-domain.ts.net`.
    - Because Tailscale automatically provisions a valid, trusted Let's Encrypt SSL certificate for your tailnet domain, it is a secure context. The Service Worker will register and cache all shell assets, allowing full offline home-screen launches!
 
