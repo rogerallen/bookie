@@ -79,6 +79,8 @@
 ### Bug Fixes
 - Added `start:backend` and `start` scripts to the root [package.json](file:///home/rallen/Documents/Devel/Node/bookie/package.json) to resolve the `Missing script: "start:backend"` error when attempting to run in production.
 - Verified successful launch of the production Express server on port 3001.
+- Fixed `TypeError: Cannot read properties of undefined (reading 'open')` crash occurring when accessing the site via insecure HTTP contexts on mobile devices. Added checks verifying that `caches` is defined in the current browser environment before attempting cache operations in `openBook` and `renderBookshelf`.
+
 
 ### Hostname Support (Network Access)
 - Changed [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) to dynamically resolve `API_BASE` using `window.location.hostname` instead of hardcoding `localhost`. This allows network-wide access (using the host machine's IP or hostname).

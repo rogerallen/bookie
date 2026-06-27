@@ -160,12 +160,20 @@ function renderBookshelf(books: BookMetadata[]) {
     html += `<div class="offline-shelf-indicator">📂 Showing downloaded books available for offline reading</div>`;
   }
 
+  const supportsPWA = typeof caches !== 'undefined';
+  
   html += books.map(book => {
     const isDownloaded = state.downloadedBooks.has(book.filename);
     const downloadIcon = isDownloaded ? '💾' : '📥';
     const downloadClass = isDownloaded ? 'downloaded' : '';
     const downloadTitle = isDownloaded ? 'Stored Offline (Click to remove)' : 'Download for Offline';
     const badgeText = isDownloaded ? '<span class="offline-ready-badge">✓ Offline</span>' : '';
+
+    const downloadButtonHtml = supportsPWA
+      ? `<button class="btn-card-action ${downloadClass}" data-filename="${encodeURIComponent(book.filename)}" title="${downloadTitle}" aria-label="${downloadTitle}">
+            ${downloadIcon}
+         </button>`
+      : '';
 
     return `
       <div class="book-card" data-filename="${encodeURIComponent(book.filename)}">
@@ -178,9 +186,7 @@ function renderBookshelf(books: BookMetadata[]) {
             <span class="book-card-badge">${escapeHtml(getFileExtension(book.filename).toUpperCase())}</span>
             ${badgeText}
           </div>
-          <button class="btn-card-action ${downloadClass}" data-filename="${encodeURIComponent(book.filename)}" title="${downloadTitle}" aria-label="${downloadTitle}">
-            ${downloadIcon}
-          </button>
+          ${downloadButtonHtml}
         </div>
       </div>
     `;
@@ -301,8 +307,16 @@ async function openBook(filename: string) {
     let data: BookDetails;
 
     const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
-    const cache = await caches.open(BOOK_CACHE_NAME);
-    const cachedResponse = await cache.match(cacheUrl);
+    
+    let cachedResponse = null;
+    if (typeof caches !== 'undefined') {
+      try {
+        const cache = await caches.open(BOOK_CACHE_NAME);
+        cachedResponse = await cache.match(cacheUrl);
+      } catch (cacheErr) {
+        console.warn('[PWA] Cache retrieval failed (likely insecure context):', cacheErr);
+      }
+    }
 
     if (cachedResponse) {
       data = await cachedResponse.json();
