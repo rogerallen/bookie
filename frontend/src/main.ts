@@ -240,76 +240,34 @@ function renderBookshelf(books: BookMetadata[]) {
   });
 }
 
-// --- Offline Storage Wrappers (Cache API & localStorage fallback) ---
+// --- Offline Storage Wrappers (Cache API) ---
 async function saveBookOffline(book: BookMetadata, data: BookDetails): Promise<void> {
   const cacheUrl = `${API_BASE}/books/${encodeURIComponent(book.filename)}`;
-  
-  if (typeof caches !== 'undefined') {
-    try {
-      const cache = await caches.open(BOOK_CACHE_NAME);
-      const response = new Response(JSON.stringify(data), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      await cache.put(cacheUrl, response);
-      return;
-    } catch (e) {
-      console.warn('[PWA] Cache put failed, falling back to localStorage:', e);
-    }
-  }
-
-  // Fallback to localStorage (accessible in insecure HTTP mobile browser context)
-  try {
-    localStorage.setItem(`bookie-book-content:${book.filename}`, JSON.stringify(data));
-  } catch (err: any) {
-    if (err.name === 'QuotaExceededError' || err.code === 22) {
-      throw new Error('Local storage limit exceeded. Please remove some books to free up space.');
-    }
-    throw err;
-  }
+  const cache = await caches.open(BOOK_CACHE_NAME);
+  const response = new Response(JSON.stringify(data), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+  await cache.put(cacheUrl, response);
 }
 
 async function getStoredBookOffline(filename: string): Promise<BookDetails | null> {
   const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
-  
-  // Try Cache Storage first
-  if (typeof caches !== 'undefined') {
-    try {
-      const cache = await caches.open(BOOK_CACHE_NAME);
-      const cachedResponse = await cache.match(cacheUrl);
-      if (cachedResponse) {
-        return await cachedResponse.json();
-      }
-    } catch (e) {
-      console.warn('[PWA] Cache match failed:', e);
+  try {
+    const cache = await caches.open(BOOK_CACHE_NAME);
+    const cachedResponse = await cache.match(cacheUrl);
+    if (cachedResponse) {
+      return await cachedResponse.json();
     }
+  } catch (e) {
+    console.warn('[PWA] Cache match failed:', e);
   }
-
-  // Try localStorage fallback
-  const localData = localStorage.getItem(`bookie-book-content:${filename}`);
-  if (localData) {
-    try {
-      return JSON.parse(localData) as BookDetails;
-    } catch (e) {
-      console.error('[Storage] Failed to parse local book content:', e);
-    }
-  }
-
   return null;
 }
 
 async function removeBookOffline(filename: string): Promise<void> {
   const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
-  
-  if (typeof caches !== 'undefined') {
-    try {
-      const cache = await caches.open(BOOK_CACHE_NAME);
-      await cache.delete(cacheUrl);
-    } catch (e) {
-      console.warn('[PWA] Cache delete failed:', e);
-    }
-  }
-
-  localStorage.removeItem(`bookie-book-content:${filename}`);
+  const cache = await caches.open(BOOK_CACHE_NAME);
+  await cache.delete(cacheUrl);
 }
 
 // --- Download & Delete Book Flows ---
