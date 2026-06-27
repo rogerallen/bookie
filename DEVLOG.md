@@ -69,6 +69,14 @@
 - Pushed all initial commits and branch history to GitHub.
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document and link to [CONVERSATION.md](file:///home/rallen/Documents/Devel/Node/bookie/CONVERSATION.md) and [DEVLOG.md](file:///home/rallen/Documents/Devel/Node/bookie/DEVLOG.md).
 
+### Project Licensing
+- Evaluated US Copyright law regarding AI-human collaborative works.
+- Adopted the permissive MIT License for open-source distribution.
+- Created [LICENSE](file:///home/rallen/Documents/Devel/Node/bookie/LICENSE) file in the root directory.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to link to the new license.
+- Staged, committed, and pushed the licensed files to GitHub.
+
+
 
 
 

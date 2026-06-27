@@ -130,3 +130,10 @@ set BOOKS_DIR="C:\path\to\my\library" && npm run dev
 # Windows (PowerShell)
 $env:BOOKS_DIR="C:\path\to\my\library"; npm run dev
 ```
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
