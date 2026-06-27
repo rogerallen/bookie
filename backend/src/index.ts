@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import os from 'os';
 
 const app = express();
 app.use(cors());
@@ -166,5 +167,8 @@ if (fs.existsSync(distPath)) {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`[Bookie Backend] Server running on http://localhost:${PORT}`);
+  const hostname = os.hostname();
+  console.log(`[Bookie Backend] Server running on:`);
+  console.log(`  - Local:   http://localhost:${PORT}`);
+  console.log(`  - Network: http://${hostname}:${PORT}`);
 });

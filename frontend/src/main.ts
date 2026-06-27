@@ -60,7 +60,10 @@ const DOM = {
   pageIndicator: document.getElementById('page-indicator') as HTMLSpanElement,
 };
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = window.location.port === '5173'
+  ? `${window.location.protocol}//${window.location.hostname}:3001/api`
+  : `${window.location.origin}/api`;
+
 
 // --- Initialization ---
 async function init() {

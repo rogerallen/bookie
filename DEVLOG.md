@@ -80,6 +80,11 @@
 - Added `start:backend` and `start` scripts to the root [package.json](file:///home/rallen/Documents/Devel/Node/bookie/package.json) to resolve the `Missing script: "start:backend"` error when attempting to run in production.
 - Verified successful launch of the production Express server on port 3001.
 
+### Hostname Support (Network Access)
+- Changed [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) to dynamically resolve `API_BASE` using `window.location.hostname` instead of hardcoding `localhost`. This allows network-wide access (using the host machine's IP or hostname).
+- Updated [backend/src/index.ts](file:///home/rallen/Documents/Devel/Node/bookie/backend/src/index.ts) to resolve and print the local network hostname using Node's `os` module on server startup.
+
+
 
 
 
