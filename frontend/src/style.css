@@ -615,6 +615,11 @@ h3 {
   box-sizing: border-box;
 }
 
+/* Prevent first element's top margin from inflating the first column height */
+.reader-content > *:first-child {
+  margin-top: 0;
+}
+
 /* CSS column split rules for 2 columns layout */
 .reader-content.two-columns {
   column-width: 50vw;
