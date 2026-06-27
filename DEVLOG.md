@@ -99,6 +99,11 @@
   - Implemented `online`/`offline` transition state detection triggers.
   - Programmed cache-first opening fallback on `openBook` using the storage wrappers.
   - Added list fallback to `localStorage` metadata when querying the bookshelf offline.
+  - Created `fetchWithTimeout` wrapper in `main.ts` to abort network calls after a 3-second to 10-second threshold, eliminating infinite loading spinner hangs when the server is stopped or when network connections transition.
+- Updated [frontend/public/sw.js](file:///home/rallen/Documents/Devel/Node/bookie/frontend/public/sw.js):
+  - Incremented cache to `bookie-shell-v2`.
+  - Added network-first interceptor caching for `/api/books` to allow complete offline bookshelf viewing via the service worker.
+  - Excluded the `bookie-api-v1` cache from activation cleanup.
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation, book download instructions, secure context mobile prerequisites, and Option C detailing Tailscale HTTPS & Serve configuration (updated to use the non-deprecated CLI format `tailscale serve --bg http://localhost:3001`).
 
 

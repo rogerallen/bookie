@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bookie-shell-v1';
+const CACHE_NAME = 'bookie-shell-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -24,7 +24,7 @@ self.addEventListener('activate', (e) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME && !key.startsWith('bookie-books-')) {
+          if (key !== CACHE_NAME && !key.startsWith('bookie-books-') && key !== 'bookie-api-v1') {
             return caches.delete(key);
           }
         })
@@ -39,7 +39,27 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // Skip intercepting local backend API requests
+  // Cache API index (/api/books) with Network-First strategy to support offline list viewing
+  if (url.pathname.endsWith('/api/books')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((response) => {
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open('bookie-api-v1').then((cache) => {
+              cache.put(e.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(e.request);
+        })
+    );
+    return;
+  }
+
+  // Skip other local backend API requests
   // The client side app handles book downloading/retrieval via Cache Storage directly
   if (url.pathname.startsWith('/api/')) {
     return;

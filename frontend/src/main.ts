@@ -68,6 +68,26 @@ const API_BASE = window.location.port === '5173'
 
 const BOOK_CACHE_NAME = 'bookie-books-v1';
 
+// --- Fetch Timeout Helper ---
+async function fetchWithTimeout(resource: RequestInfo | URL, options: RequestInit & { timeout?: number } = {}) {
+  const { timeout = 3000 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
+
+
 // --- Initialization ---
 async function init() {
   registerServiceWorker();
@@ -115,7 +135,7 @@ async function fetchLibrary() {
       return;
     }
 
-    const res = await fetch(`${API_BASE}/books`);
+    const res = await fetchWithTimeout(`${API_BASE}/books`, { timeout: 3000 });
     if (!res.ok) throw new Error('Failed to fetch library index');
     state.books = await res.json();
     renderBookshelf(state.books);
@@ -299,7 +319,7 @@ async function downloadBook(book: BookMetadata) {
     const cacheUrl = `${API_BASE}/books/${encodeURIComponent(book.filename)}`;
     
     // Fetch the book content from API
-    const res = await fetch(cacheUrl);
+    const res = await fetchWithTimeout(cacheUrl, { timeout: 10000 });
     if (!res.ok) throw new Error('Failed to fetch book content from API');
     
     const data: BookDetails = await res.json();
@@ -378,7 +398,7 @@ async function openBook(filename: string) {
 
     if (!data) {
       const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
-      const res = await fetch(cacheUrl);
+      const res = await fetchWithTimeout(cacheUrl, { timeout: 4000 });
       if (!res.ok) throw new Error(`Failed to load book: ${filename}`);
       data = await res.json();
     }
