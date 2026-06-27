@@ -103,7 +103,22 @@ function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('[PWA] Service Worker registered', reg))
+        .then(reg => {
+          console.log('[PWA] Service Worker registered', reg);
+          
+          // Check for updates to the service worker
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New service worker version detected. Reloading to update.');
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        })
         .catch(err => console.error('[PWA] Registration failed', err));
     });
   }

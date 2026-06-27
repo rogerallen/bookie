@@ -93,7 +93,7 @@
 - Embedded an offline warning banner inside [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html).
 - Added download buttons, offline checkmark badges, and styling rules inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css).
 - Extended [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
-  - Added Service Worker registration logic.
+  - Added Service Worker registration logic with an automatic `updatefound` event listener that reloads the page instantly when a new Service Worker is installed to guarantee users run the latest code.
   - Implemented `saveBookOffline`, `getStoredBookOffline`, and `removeBookOffline` wrappers utilizing the standard browser `Cache Storage` API. Deleted the previous `localStorage` book-content fallback code since secure HTTPS context is now guaranteed (via Tailscale HTTPS).
   - Implemented `downloadBook` and `deleteBook` calls accessing these storage wrappers.
   - Implemented `online`/`offline` transition state detection triggers.
