@@ -84,6 +84,21 @@
 - Changed [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) to dynamically resolve `API_BASE` using `window.location.hostname` instead of hardcoding `localhost`. This allows network-wide access (using the host machine's IP or hostname).
 - Updated [backend/src/index.ts](file:///home/rallen/Documents/Devel/Node/bookie/backend/src/index.ts) to resolve and print the local network hostname using Node's `os` module on server startup.
 
+### Progressive Web App (PWA) & Offline Reading Support
+- Added vector app icon [frontend/public/icon.svg](file:///home/rallen/Documents/Devel/Node/bookie/frontend/public/icon.svg) featuring a book design.
+- Created [frontend/public/manifest.json](file:///home/rallen/Documents/Devel/Node/bookie/frontend/public/manifest.json) detailing standalone PWA configs and installability parameters.
+- Built [frontend/public/sw.js](file:///home/rallen/Documents/Devel/Node/bookie/frontend/public/sw.js) Service Worker executing a **Network-First, Cache-Fallback** interception strategy to cache hashed Vite static assets.
+- Embedded an offline warning banner inside [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html).
+- Added download buttons, offline checkmark badges, and styling rules inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css).
+- Extended [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
+  - Added Service Worker registration logic.
+  - Implemented `downloadBook` and `deleteBook` calls accessing the client-side `Cache Storage` API.
+  - Implemented `online`/`offline` transition state detection triggers.
+  - Programmed cache-first opening fallback on `openBook`.
+  - Added list fallback to `localStorage` metadata when querying the bookshelf offline.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation and book download instructions.
+
+
 
 
 

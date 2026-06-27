@@ -16,6 +16,7 @@ This project is built collaboratively by Roger and Gemini. The design process an
 - **Themes & Aesthetics**: Reading modes configured for different environments (Paper, Sepia, Charcoal, and Night).
 - **Custom Sizing**: Instantly increase or decrease font size with automatic re-pagination.
 - **Metadata Support**: Reads YAML frontmatter to extract titles and authors.
+- **Offline Reading & PWA**: Install the app on your home screen or desktop. Cache books locally with one click to read them fully offline.
 
 ---
 
@@ -130,6 +131,25 @@ set BOOKS_DIR="C:\path\to\my\library" && npm run dev
 # Windows (PowerShell)
 $env:BOOKS_DIR="C:\path\to\my\library"; npm run dev
 ```
+
+---
+
+## 6. Offline Reading & PWA Installation
+
+**bookie** is a Progressive Web App (PWA), which means it can be installed on your mobile phone or desktop computer and run fully offline without any server connection.
+
+### Installing the App
+- **On Mobile (iOS Safari)**: Open the app URL, tap the **Share** button, and select **Add to Home Screen**.
+- **On Mobile (Android Chrome)**: Open the app URL, tap the menu icon, and select **Install App** or **Add to Home Screen**.
+- **On Desktop (Chrome/Edge)**: Click the **Install** icon in the right side of the address bar.
+
+Once installed, **bookie** launches in a standalone, distraction-free app window with its own vector icon (📖).
+
+### Downloading Books for Offline Reading
+- While online and connected to the server, you will see an **Install/Download icon (📥)** in the bottom-right corner of each book card.
+- Click the icon to download the book content into the browser's Cache Storage. The card will update to show a **✓ Offline (💾)** badge.
+- If the server stops or you lose connection, **bookie** will show an amber **Working Offline** banner at the top, list only your downloaded books on the bookshelf, and let you read them in full!
+- Click the **💾** badge on any book to remove it from offline storage and free up space.
 
 ---
 

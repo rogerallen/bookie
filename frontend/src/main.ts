@@ -23,6 +23,7 @@ const state = {
   layoutColumns: 'auto' as 'auto' | '1' | '2',
   currentPageSpread: 0,
   totalPagesSpreads: 1,
+  downloadedBooks: new Set<string>(), // Tracks offline-stored book filenames
 };
 
 // --- DOM Cache ---
@@ -33,6 +34,7 @@ const DOM = {
   bookshelfGrid: document.getElementById('bookshelf-grid') as HTMLDivElement,
   bookCount: document.getElementById('book-count') as HTMLSpanElement,
   searchInput: document.getElementById('search-input') as HTMLInputElement,
+  offlineBanner: document.getElementById('offline-banner') as HTMLDivElement,
   
   // Reader elements
   backButton: document.getElementById('back-button') as HTMLButtonElement,
@@ -64,63 +66,127 @@ const API_BASE = window.location.port === '5173'
   ? `${window.location.protocol}//${window.location.hostname}:3001/api`
   : `${window.location.origin}/api`;
 
+const BOOK_CACHE_NAME = 'bookie-books-v1';
 
 // --- Initialization ---
 async function init() {
+  registerServiceWorker();
   setupGlobalListeners();
   setupDragToScroll();
   loadSavedSettings();
+  loadOfflineState();
   await fetchLibrary();
   hideLoading();
 }
 
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('[PWA] Service Worker registered', reg))
+        .catch(err => console.error('[PWA] Registration failed', err));
+    });
+  }
+}
+
+function loadOfflineState() {
+  const savedMeta = localStorage.getItem('bookie-offline-metadata');
+  if (savedMeta) {
+    try {
+      const list = JSON.parse(savedMeta) as BookMetadata[];
+      list.forEach(b => state.downloadedBooks.add(b.filename));
+    } catch (e) {
+      console.error('[PWA] Failed to parse offline metadata list:', e);
+    }
+  }
+}
+
 // --- Fetch Library ---
 async function fetchLibrary() {
+  const isOffline = !navigator.onLine;
+  updateOfflineUI(isOffline);
+
   try {
     showLoading();
+    if (isOffline) {
+      const savedMeta = localStorage.getItem('bookie-offline-metadata');
+      state.books = savedMeta ? JSON.parse(savedMeta) : [];
+      renderBookshelf(state.books);
+      return;
+    }
+
     const res = await fetch(`${API_BASE}/books`);
     if (!res.ok) throw new Error('Failed to fetch library index');
     state.books = await res.json();
     renderBookshelf(state.books);
   } catch (err) {
-    console.error('Error fetching library:', err);
-    DOM.bookshelfGrid.innerHTML = `
-      <div class="error-placeholder">
-        <p>Could not connect to the bookie backend API server.</p>
-        <button class="btn" onclick="window.location.reload()">Retry Connection</button>
-      </div>
-    `;
+    console.error('Error fetching library, falling back to offline:', err);
+    const savedMeta = localStorage.getItem('bookie-offline-metadata');
+    state.books = savedMeta ? JSON.parse(savedMeta) : [];
+    renderBookshelf(state.books);
+    updateOfflineUI(true);
   } finally {
     hideLoading();
   }
 }
 
+function updateOfflineUI(isOffline: boolean) {
+  if (isOffline) {
+    DOM.offlineBanner.classList.remove('hidden');
+  } else {
+    DOM.offlineBanner.classList.add('hidden');
+  }
+}
+
 // --- Render Library ---
 function renderBookshelf(books: BookMetadata[]) {
+  const isOffline = !navigator.onLine;
   DOM.bookCount.textContent = `${books.length} book${books.length === 1 ? '' : 's'} found`;
   
   if (books.length === 0) {
     DOM.bookshelfGrid.innerHTML = `
       <div class="empty-shelf-placeholder">
         <p>Your bookshelf is empty.</p>
-        <p class="hint">Place Markdown (.md) or Text (.txt) files in the <code>books/</code> directory.</p>
+        ${isOffline 
+          ? '<p class="hint">No downloaded books available. Connect to the network to download books.</p>' 
+          : '<p class="hint">Place Markdown (.md) or Text (.txt) files in the <code>books/</code> directory.</p>'}
       </div>
     `;
     return;
   }
 
-  DOM.bookshelfGrid.innerHTML = books.map(book => `
-    <div class="book-card" data-filename="${encodeURIComponent(book.filename)}">
-      <div class="book-card-meta">
-        <h3 class="book-card-title">${escapeHtml(book.title)}</h3>
-        <p class="book-card-author">by ${escapeHtml(book.author)}</p>
+  let html = '';
+  if (isOffline) {
+    html += `<div class="offline-shelf-indicator">📂 Showing downloaded books available for offline reading</div>`;
+  }
+
+  html += books.map(book => {
+    const isDownloaded = state.downloadedBooks.has(book.filename);
+    const downloadIcon = isDownloaded ? '💾' : '📥';
+    const downloadClass = isDownloaded ? 'downloaded' : '';
+    const downloadTitle = isDownloaded ? 'Stored Offline (Click to remove)' : 'Download for Offline';
+    const badgeText = isDownloaded ? '<span class="offline-ready-badge">✓ Offline</span>' : '';
+
+    return `
+      <div class="book-card" data-filename="${encodeURIComponent(book.filename)}">
+        <div class="book-card-meta">
+          <h3 class="book-card-title">${escapeHtml(book.title)}</h3>
+          <p class="book-card-author">by ${escapeHtml(book.author)}</p>
+        </div>
+        <div class="book-card-footer">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="book-card-badge">${escapeHtml(getFileExtension(book.filename).toUpperCase())}</span>
+            ${badgeText}
+          </div>
+          <button class="btn-card-action ${downloadClass}" data-filename="${encodeURIComponent(book.filename)}" title="${downloadTitle}" aria-label="${downloadTitle}">
+            ${downloadIcon}
+          </button>
+        </div>
       </div>
-      <div class="book-card-footer">
-        <span class="book-card-badge">${escapeHtml(getFileExtension(book.filename).toUpperCase())}</span>
-        <span class="book-card-filename">${escapeHtml(book.filename)}</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  DOM.bookshelfGrid.innerHTML = html;
 
   // Attach card click listeners
   DOM.bookshelfGrid.querySelectorAll('.book-card').forEach(card => {
@@ -131,6 +197,90 @@ function renderBookshelf(books: BookMetadata[]) {
       }
     });
   });
+
+  // Attach download button click listeners
+  DOM.bookshelfGrid.querySelectorAll('.btn-card-action').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const filename = btn.getAttribute('data-filename');
+      if (!filename) return;
+      const decodedFilename = decodeURIComponent(filename);
+      const book = books.find(b => b.filename === decodedFilename);
+      if (!book) return;
+
+      const isDownloaded = state.downloadedBooks.has(decodedFilename);
+      if (isDownloaded) {
+        if (confirm(`Remove "${book.title}" from offline storage?`)) {
+          await deleteBook(decodedFilename);
+        }
+      } else {
+        await downloadBook(book);
+      }
+    });
+  });
+}
+
+// --- Download & Delete Book Flows ---
+async function downloadBook(book: BookMetadata) {
+  try {
+    showLoading();
+    const cacheUrl = `${API_BASE}/books/${encodeURIComponent(book.filename)}`;
+    
+    // Fetch the book content from API
+    const res = await fetch(cacheUrl);
+    if (!res.ok) throw new Error('Failed to fetch book content from API');
+    
+    // Save to Cache Storage
+    const cache = await caches.open(BOOK_CACHE_NAME);
+    await cache.put(cacheUrl, res.clone());
+    
+    // Update local state and localStorage
+    state.downloadedBooks.add(book.filename);
+    const savedMeta = localStorage.getItem('bookie-offline-metadata');
+    let list: BookMetadata[] = [];
+    if (savedMeta) {
+      list = JSON.parse(savedMeta);
+    }
+    if (!list.some(b => b.filename === book.filename)) {
+      list.push(book);
+      localStorage.setItem('bookie-offline-metadata', JSON.stringify(list));
+    }
+    
+    renderBookshelf(state.books);
+  } catch (err) {
+    console.error('[PWA] Failed to download book:', err);
+    alert(`Could not download "${book.title}" for offline reading. Please make sure the server is reachable.`);
+  } finally {
+    hideLoading();
+  }
+}
+
+async function deleteBook(filename: string) {
+  try {
+    showLoading();
+    const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
+    const cache = await caches.open(BOOK_CACHE_NAME);
+    await cache.delete(cacheUrl);
+    
+    state.downloadedBooks.delete(filename);
+    
+    const savedMeta = localStorage.getItem('bookie-offline-metadata');
+    if (savedMeta) {
+      let list: BookMetadata[] = JSON.parse(savedMeta);
+      list = list.filter(b => b.filename !== filename);
+      localStorage.setItem('bookie-offline-metadata', JSON.stringify(list));
+    }
+    
+    if (!navigator.onLine) {
+      state.books = state.books.filter(b => b.filename !== filename);
+    }
+    
+    renderBookshelf(state.books);
+  } catch (err) {
+    console.error('[PWA] Failed to delete book:', err);
+  } finally {
+    hideLoading();
+  }
 }
 
 // --- Search / Filtering ---
@@ -148,10 +298,20 @@ DOM.searchInput.addEventListener('input', () => {
 async function openBook(filename: string) {
   try {
     showLoading();
-    const res = await fetch(`${API_BASE}/books/${encodeURIComponent(filename)}`);
-    if (!res.ok) throw new Error(`Failed to load book: ${filename}`);
+    let data: BookDetails;
+
+    const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
+    const cache = await caches.open(BOOK_CACHE_NAME);
+    const cachedResponse = await cache.match(cacheUrl);
+
+    if (cachedResponse) {
+      data = await cachedResponse.json();
+    } else {
+      const res = await fetch(cacheUrl);
+      if (!res.ok) throw new Error(`Failed to load book: ${filename}`);
+      data = await res.json();
+    }
     
-    const data: BookDetails = await res.json();
     state.activeBook = data;
     
     // Inject metadata
@@ -433,6 +593,14 @@ function setupGlobalListeners() {
     resizeTimeout = setTimeout(() => {
       recalculatePages();
     }, 150);
+  });
+
+  // Online/offline transition listeners
+  window.addEventListener('online', () => {
+    fetchLibrary();
+  });
+  window.addEventListener('offline', () => {
+    fetchLibrary();
   });
 }
 

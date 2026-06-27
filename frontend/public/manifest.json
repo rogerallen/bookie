@@ -1,0 +1,18 @@
+{
+  "short_name": "bookie",
+  "name": "bookie — Horizontal Book Reader",
+  "description": "A modern, gorgeous horizontal paginated reader for markdown and text files.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#fcfbf9",
+  "theme_color": "#5a4acf",
+  "display": "standalone",
+  "orientation": "any"
+}
