@@ -105,11 +105,11 @@
   - Replaced the Network-First shell caching with a pure **Cache-First** strategy for all static assets (HTML/JS/CSS). This ensures static assets load instantly offline and prevents splash-screen hangs caused by pending TCP network requests.
   - Added an offline checker inside the `/api/books` intercept: if `navigator.onLine` is false, it returns the cached list immediately without trying to perform a network fetch, preventing network-state resolution hangs.
   - Excluded the `bookie-api-v1` cache from activation cleanup.
-- Added visible `version 1.5.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
-- Fixed layout column widths in [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css):
-  - Changed `.one-column` width from `calc(100vw - 4 * var(--reader-gap))` to `calc(100vw - 2 * var(--reader-gap))`.
-  - Changed `.two-columns` width from `calc((100vw - 6 * var(--reader-gap)) / 2)` to `calc((100vw - 4 * var(--reader-gap)) / 2)`.
-  - This aligns individual columns exactly with their relative outer margins (`--reader-gap`) and middle gaps (`2 * --reader-gap`), ensuring swipe pagination lines up precisely with column boundaries without cutting off text.
+- Added visible `version 1.6.0` text in [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) footer and styled it inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) to facilitate cache validation debugging.
+- Fixed layout columns and scroll-snap alignment drift in [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) and [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
+  - Changed `.reader-content` to use `column-gap: 0` and column-widths of exactly `100vw` (for 1-column) and `50vw` (for 2-columns).
+  - Shifted horizontal page margins to the content children themselves using `.reader-content > * { padding: 0 var(--reader-gap); box-sizing: border-box; }`. This guarantees every column is a exact multiple of viewport width with zero subpixel remainder gaps, eliminating layout drifting over long chapters.
+  - Reset `content.style.width = 'auto'` before measuring in `recalculatePages()` and locked `content.style.width` to exactly `${numSpreads * 100}vw` after measuring to prevent browsers from automatically stretching columns.
 - Extended [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
   - Created `saveBookProgress`, `restoreBookProgress`, `getStoredProgressFraction`, and `restoreBookProgressByFraction` helpers.
   - Saved relative progress (decimal fraction) inside `updatePaginationIndicator` to `localStorage` (debounced by 300ms) to ensure it works across device orientations and resizes.

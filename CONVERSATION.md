@@ -179,6 +179,4 @@ Here is the design of the progress caching system:
    - If a book has progress (> 0%), it renders a gorgeous visual progress bar at the bottom of the book card (e.g. showing `45% read` or `Finished 🎉` for completed books).
    - Returning to the bookshelf automatically triggers a re-render to ensure card markers update instantly.
 
-I have updated [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) and [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css), incremented the build version to `version 1.4.0` (precached in Service Worker `v4`), and successfully pushed all commits to Git!
-
-
+I have updated [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) and [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css), resolved the layout drifting issue, incremented the build version to `version 1.6.0` (precached in Service Worker `v6`), and successfully pushed all commits to Git!

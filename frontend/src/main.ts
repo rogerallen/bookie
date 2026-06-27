@@ -496,6 +496,9 @@ function recalculatePages() {
   // Capture current progress before layout shifts
   const prevProgress = getStoredProgressFraction();
   
+  // Reset content width to allow columns to flow naturally for scrollWidth measurement
+  content.style.width = 'auto';
+
   // Set layout class based on config and screen width
   const isWide = window.innerWidth > 768;
   const layoutCols = state.layoutColumns;
@@ -521,6 +524,9 @@ function recalculatePages() {
   
   state.totalPagesSpreads = numSpreads;
   
+  // Lock content width to exactly match calculated page spreads
+  content.style.width = `${numSpreads * 100}vw`;
+
   // Re-generate snap targets to set viewport bounds and snapping
   DOM.snapPoints.innerHTML = '';
   // Set the snap points container width to match the pages

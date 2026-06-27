@@ -591,16 +591,15 @@ h3 {
   top: 0;
   left: 0;
   height: 100%;
-  width: max-content;
   box-sizing: border-box;
-  padding: 40px var(--reader-gap);
+  padding: 40px 0;
   pointer-events: auto;
   z-index: 2;
 
   /* CSS Columns setup */
   column-fill: auto;
-  column-gap: calc(2 * var(--reader-gap));
-  column-width: calc(100vw - 2 * var(--reader-gap));
+  column-gap: 0;
+  column-width: 100vw;
   
   font-family: var(--font-serif);
   font-size: var(--reader-font-size, 18px);
@@ -609,14 +608,22 @@ h3 {
   text-align: justify;
 }
 
+/* Add padding to child elements to create page margins without splitting columns */
+.reader-content > * {
+  padding-left: var(--reader-gap);
+  padding-right: var(--reader-gap);
+  box-sizing: border-box;
+}
+
 /* CSS column split rules for 2 columns layout */
 .reader-content.two-columns {
-  column-width: calc((100vw - 4 * var(--reader-gap)) / 2);
-  column-gap: calc(2 * var(--reader-gap));
+  column-width: 50vw;
+  column-gap: 0;
 }
 
 .reader-content.one-column {
-  column-width: calc(100vw - 2 * var(--reader-gap));
+  column-width: 100vw;
+  column-gap: 0;
 }
 
 /* Style for parsed markdown in the reader */
