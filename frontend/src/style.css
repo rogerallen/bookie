@@ -600,7 +600,7 @@ h3 {
   /* CSS Columns setup */
   column-fill: auto;
   column-gap: calc(2 * var(--reader-gap));
-  column-width: calc(100vw - 4 * var(--reader-gap));
+  column-width: calc(100vw - 2 * var(--reader-gap));
   
   font-family: var(--font-serif);
   font-size: var(--reader-font-size, 18px);
@@ -611,12 +611,12 @@ h3 {
 
 /* CSS column split rules for 2 columns layout */
 .reader-content.two-columns {
-  column-width: calc((100vw - 6 * var(--reader-gap)) / 2);
+  column-width: calc((100vw - 4 * var(--reader-gap)) / 2);
   column-gap: calc(2 * var(--reader-gap));
 }
 
 .reader-content.one-column {
-  column-width: calc(100vw - 4 * var(--reader-gap));
+  column-width: calc(100vw - 2 * var(--reader-gap));
 }
 
 /* Style for parsed markdown in the reader */
