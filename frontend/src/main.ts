@@ -160,20 +160,12 @@ function renderBookshelf(books: BookMetadata[]) {
     html += `<div class="offline-shelf-indicator">📂 Showing downloaded books available for offline reading</div>`;
   }
 
-  const supportsPWA = typeof caches !== 'undefined';
-  
   html += books.map(book => {
     const isDownloaded = state.downloadedBooks.has(book.filename);
     const downloadIcon = isDownloaded ? '💾' : '📥';
     const downloadClass = isDownloaded ? 'downloaded' : '';
     const downloadTitle = isDownloaded ? 'Stored Offline (Click to remove)' : 'Download for Offline';
     const badgeText = isDownloaded ? '<span class="offline-ready-badge">✓ Offline</span>' : '';
-
-    const downloadButtonHtml = supportsPWA
-      ? `<button class="btn-card-action ${downloadClass}" data-filename="${encodeURIComponent(book.filename)}" title="${downloadTitle}" aria-label="${downloadTitle}">
-            ${downloadIcon}
-         </button>`
-      : '';
 
     return `
       <div class="book-card" data-filename="${encodeURIComponent(book.filename)}">
@@ -186,7 +178,9 @@ function renderBookshelf(books: BookMetadata[]) {
             <span class="book-card-badge">${escapeHtml(getFileExtension(book.filename).toUpperCase())}</span>
             ${badgeText}
           </div>
-          ${downloadButtonHtml}
+          <button class="btn-card-action ${downloadClass}" data-filename="${encodeURIComponent(book.filename)}" title="${downloadTitle}" aria-label="${downloadTitle}">
+            ${downloadIcon}
+          </button>
         </div>
       </div>
     `;
@@ -226,6 +220,78 @@ function renderBookshelf(books: BookMetadata[]) {
   });
 }
 
+// --- Offline Storage Wrappers (Cache API & localStorage fallback) ---
+async function saveBookOffline(book: BookMetadata, data: BookDetails): Promise<void> {
+  const cacheUrl = `${API_BASE}/books/${encodeURIComponent(book.filename)}`;
+  
+  if (typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(BOOK_CACHE_NAME);
+      const response = new Response(JSON.stringify(data), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      await cache.put(cacheUrl, response);
+      return;
+    } catch (e) {
+      console.warn('[PWA] Cache put failed, falling back to localStorage:', e);
+    }
+  }
+
+  // Fallback to localStorage (accessible in insecure HTTP mobile browser context)
+  try {
+    localStorage.setItem(`bookie-book-content:${book.filename}`, JSON.stringify(data));
+  } catch (err: any) {
+    if (err.name === 'QuotaExceededError' || err.code === 22) {
+      throw new Error('Local storage limit exceeded. Please remove some books to free up space.');
+    }
+    throw err;
+  }
+}
+
+async function getStoredBookOffline(filename: string): Promise<BookDetails | null> {
+  const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
+  
+  // Try Cache Storage first
+  if (typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(BOOK_CACHE_NAME);
+      const cachedResponse = await cache.match(cacheUrl);
+      if (cachedResponse) {
+        return await cachedResponse.json();
+      }
+    } catch (e) {
+      console.warn('[PWA] Cache match failed:', e);
+    }
+  }
+
+  // Try localStorage fallback
+  const localData = localStorage.getItem(`bookie-book-content:${filename}`);
+  if (localData) {
+    try {
+      return JSON.parse(localData) as BookDetails;
+    } catch (e) {
+      console.error('[Storage] Failed to parse local book content:', e);
+    }
+  }
+
+  return null;
+}
+
+async function removeBookOffline(filename: string): Promise<void> {
+  const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
+  
+  if (typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(BOOK_CACHE_NAME);
+      await cache.delete(cacheUrl);
+    } catch (e) {
+      console.warn('[PWA] Cache delete failed:', e);
+    }
+  }
+
+  localStorage.removeItem(`bookie-book-content:${filename}`);
+}
+
 // --- Download & Delete Book Flows ---
 async function downloadBook(book: BookMetadata) {
   try {
@@ -236,9 +302,10 @@ async function downloadBook(book: BookMetadata) {
     const res = await fetch(cacheUrl);
     if (!res.ok) throw new Error('Failed to fetch book content from API');
     
-    // Save to Cache Storage
-    const cache = await caches.open(BOOK_CACHE_NAME);
-    await cache.put(cacheUrl, res.clone());
+    const data: BookDetails = await res.json();
+    
+    // Save to local storage (transparently handles Cache or localStorage)
+    await saveBookOffline(book, data);
     
     // Update local state and localStorage
     state.downloadedBooks.add(book.filename);
@@ -253,9 +320,9 @@ async function downloadBook(book: BookMetadata) {
     }
     
     renderBookshelf(state.books);
-  } catch (err) {
+  } catch (err: any) {
     console.error('[PWA] Failed to download book:', err);
-    alert(`Could not download "${book.title}" for offline reading. Please make sure the server is reachable.`);
+    alert(err.message || `Could not download "${book.title}" for offline reading.`);
   } finally {
     hideLoading();
   }
@@ -264,9 +331,9 @@ async function downloadBook(book: BookMetadata) {
 async function deleteBook(filename: string) {
   try {
     showLoading();
-    const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
-    const cache = await caches.open(BOOK_CACHE_NAME);
-    await cache.delete(cacheUrl);
+    
+    // Remove book from offline storage wrappers
+    await removeBookOffline(filename);
     
     state.downloadedBooks.delete(filename);
     
@@ -304,26 +371,20 @@ DOM.searchInput.addEventListener('input', () => {
 async function openBook(filename: string) {
   try {
     showLoading();
-    let data: BookDetails;
+    let data: BookDetails | null = null;
 
-    const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
-    
-    let cachedResponse = null;
-    if (typeof caches !== 'undefined') {
-      try {
-        const cache = await caches.open(BOOK_CACHE_NAME);
-        cachedResponse = await cache.match(cacheUrl);
-      } catch (cacheErr) {
-        console.warn('[PWA] Cache retrieval failed (likely insecure context):', cacheErr);
-      }
-    }
+    // Try finding in offline storage first (transparent fallback)
+    data = await getStoredBookOffline(filename);
 
-    if (cachedResponse) {
-      data = await cachedResponse.json();
-    } else {
+    if (!data) {
+      const cacheUrl = `${API_BASE}/books/${encodeURIComponent(filename)}`;
       const res = await fetch(cacheUrl);
       if (!res.ok) throw new Error(`Failed to load book: ${filename}`);
       data = await res.json();
+    }
+    
+    if (!data) {
+      throw new Error(`Failed to load book data: ${filename}`);
     }
     
     state.activeBook = data;

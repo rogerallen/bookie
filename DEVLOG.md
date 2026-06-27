@@ -94,9 +94,10 @@
 - Added download buttons, offline checkmark badges, and styling rules inside [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css).
 - Extended [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts):
   - Added Service Worker registration logic.
-  - Implemented `downloadBook` and `deleteBook` calls accessing the client-side `Cache Storage` API.
+  - Implemented `saveBookOffline`, `getStoredBookOffline`, and `removeBookOffline` wrappers that try to use the `Cache Storage` API first (for secure HTTPS contexts) and fall back transparently to `localStorage` (for insecure HTTP contexts like local network mobile browsers).
+  - Implemented `downloadBook` and `deleteBook` calls accessing these storage wrappers.
   - Implemented `online`/`offline` transition state detection triggers.
-  - Programmed cache-first opening fallback on `openBook`.
+  - Programmed cache-first opening fallback on `openBook` using the storage wrappers.
   - Added list fallback to `localStorage` metadata when querying the bookshelf offline.
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) to document PWA installation and book download instructions.
 
