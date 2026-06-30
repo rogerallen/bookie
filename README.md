@@ -78,7 +78,48 @@ This is the content of my book. It will be split into horizontal pages automatic
 
 ---
 
-## 4. Running the Application
+## 4. Importing Public Domain Books
+
+**bookie** includes a built-in import tool that downloads free public domain books from [Project Gutenberg](https://www.gutenberg.org) — a library of over 70,000 titles.
+
+### How It Works
+
+1. **Browse** [gutenberg.org](https://www.gutenberg.org) and find a book you'd like to read.
+2. **Note the ID number** from the book's URL (e.g. `gutenberg.org/ebooks/1342` → the ID is `1342`).
+3. **Run the import command**:
+   ```bash
+   npm run import -- 1342
+   ```
+4. The tool will download the text, strip Project Gutenberg's license boilerplate, extract the title and author, and save a clean Markdown file to `books/gutenberg/`.
+5. **Start or refresh bookie** — the book appears on your bookshelf!
+
+### Examples
+
+```bash
+npm run import -- 1342    # Pride and Prejudice — Jane Austen
+npm run import -- 84      # Frankenstein — Mary Shelley
+npm run import -- 1661    # Adventures of Sherlock Holmes — Arthur Conan Doyle
+npm run import -- 345     # Dracula — Bram Stoker
+npm run import -- 1232    # The Prince — Niccolò Machiavelli
+npm run import -- 2701    # Moby Dick — Herman Melville
+npm run import -- 98      # A Tale of Two Cities — Charles Dickens
+npm run import -- 174     # The Picture of Dorian Gray — Oscar Wilde
+npm run import -- 76      # Adventures of Huckleberry Finn — Mark Twain
+npm run import -- 1952    # The Yellow Wallpaper — Charlotte Perkins Gilman
+```
+
+### Help
+
+Run with `--help` to see usage info:
+```bash
+npm run import -- --help
+```
+
+> **Note:** Downloaded books are saved to `books/gutenberg/` which is gitignored — they stay local to your machine and are not committed to the repository.
+
+---
+
+## 5. Running the Application
 
 There are two ways to run **bookie** depending on your environment:
 
@@ -105,7 +146,7 @@ To compile the frontend and run a unified production server on a single port:
 
 ---
 
-## 5. Advanced Configuration (Custom Library Directories)
+## 6. Advanced Configuration (Custom Library Directories)
 
 If you don't want to use the default `books/` directory inside the project root, you can point **bookie** to any directory on your computer containing text files:
 
@@ -134,7 +175,7 @@ $env:BOOKS_DIR="C:\path\to\my\library"; npm run dev
 
 ---
 
-## 6. Offline Reading & PWA Installation
+## 7. Offline Reading & PWA Installation
 
 **bookie** is a Progressive Web App (PWA), which means it can be installed on your mobile phone or desktop computer and run fully offline without any server connection.
 

@@ -42,3 +42,5 @@ Thumbs.db
 # Local copyrighted/personal books
 books/local/
 
+# Downloaded public domain books (via npm run import)
+books/gutenberg/

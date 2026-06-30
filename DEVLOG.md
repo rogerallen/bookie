@@ -1,5 +1,19 @@
 # Developer Log
 
+## 2026-06-30
+
+### Gutenberg Book Import Tool
+- Created [scripts/import-book.ts](file:///home/rallen/Documents/Devel/Node/bookie/scripts/import-book.ts) — a CLI tool to download public domain books from Project Gutenberg by ID number.
+  - Downloads plain text from `gutenberg.org/cache/epub/{ID}/pg{ID}.txt`.
+  - Extracts title and author from the Gutenberg header.
+  - Strips license boilerplate (START/END markers).
+  - Converts to Markdown with YAML frontmatter (`title`, `author`, `source`, `gutenberg_id`).
+  - Saves to `books/gutenberg/{slugified-title}.md`.
+- Added `"import": "npx tsx scripts/import-book.ts"` script to root [package.json](file:///home/rallen/Documents/Devel/Node/bookie/package.json).
+- Updated [.gitignore](file:///home/rallen/Documents/Devel/Node/bookie/.gitignore) to exclude `books/gutenberg/` from version control.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) with new **Section 4: Importing Public Domain Books** including usage, examples, and popular book IDs.
+- Tested successfully with Gutenberg IDs 1342 (Pride and Prejudice) and 84 (Frankenstein).
+
 ## 2026-06-27
 
 ### Initial Setup & Discussion

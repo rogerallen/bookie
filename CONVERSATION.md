@@ -180,3 +180,65 @@ Here is the design of the progress caching system:
    - Returning to the bookshelf automatically triggers a re-render to ensure card markers update instantly.
 
 I have updated [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) and [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css), resolved the layout drifting issue, incremented the build version to `version 1.6.0` (precached in Service Worker `v6`), and successfully pushed all commits to Git!
+
+## 6 Roger
+
+I would like to fill out the library of books with more public domain titles, but this should not be something we check into the repo.  We should have a process to download and install titles for users.  Could we have users
+go to various sites, jot down an ID number and we use that number to download, process and store a document locally?  Consider this and let me know what you think.
+
+## 6 Gemini
+
+Great idea! Yes, this is very doable. Here is a design for a **Book Import CLI Tool**:
+
+### 1. Supported Sources
+
+The best source for this is **Project Gutenberg**, the largest collection of free public domain ebooks. They have a consistent URL scheme that lets us download plain text by ID number:
+
+- **URL Pattern:** `https://www.gutenberg.org/cache/epub/{ID}/pg{ID}.txt`
+- **Example:** ID `1342` → *Pride and Prejudice* by Jane Austen
+
+Project Gutenberg has over 70,000 titles. Users can browse at [gutenberg.org](https://www.gutenberg.org) and note the ID number from any book's URL (e.g. `gutenberg.org/ebooks/1342` → ID is `1342`).
+
+### 2. Tool Design: `npm run import`
+
+We would add a Node.js script at `scripts/import-book.ts` that:
+
+1. **Takes a Gutenberg ID** as a command-line argument: `npm run import -- 1342`
+2. **Downloads** the plain text file from Gutenberg's cache URL.
+3. **Extracts metadata** — parses the Gutenberg header to find the title and author.
+4. **Strips boilerplate** — removes Gutenberg's standard license header/footer (the "*** START OF THE PROJECT GUTENBERG EBOOK ***" / "*** END ***" markers).
+5. **Converts to Markdown** — wraps the cleaned text in a `.md` file with YAML frontmatter (`title`, `author`, `source: gutenberg`, `gutenberg_id`).
+6. **Saves to `books/`** — writes to `books/{sanitized-title}.md`, ready for bookie to serve.
+
+### 3. Git Strategy
+
+Downloaded books would go into the `books/` directory but should **not** be committed to the repo. We can:
+- Keep the existing sample books (`alice.md`, `sherlock.md`, `formatting-test.md`) checked in as starter content.
+- Add a `.gitignore` pattern for Gutenberg-sourced books (e.g. by placing them in `books/gutenberg/` and gitignoring that subdirectory).
+- Alternatively, the import script could add a comment/marker in the frontmatter that identifies auto-imported books.
+
+### 4. Proposed File Changes
+
+1. Create `scripts/import-book.ts` — the import CLI tool.
+2. Update `package.json` — add `"import": "npx tsx scripts/import-book.ts"` script.
+3. Update `.gitignore` — add `books/gutenberg/` to prevent committing downloaded books.
+4. Update `README.md` — document the import workflow with examples.
+5. Log changes in `DEVLOG.md`.
+
+### 5. Example Workflow
+
+```bash
+# Browse gutenberg.org, find a book you like, note the ID number
+# e.g. Pride and Prejudice is ID 1342
+
+npm run import -- 1342
+# Output: ✓ Downloaded "Pride and Prejudice" by Jane Austen → books/gutenberg/pride-and-prejudice.md
+
+npm run import -- 84
+# Output: ✓ Downloaded "Frankenstein" by Mary Shelley → books/gutenberg/frankenstein.md
+
+# Start the server and the new books appear on your bookshelf!
+npm run start
+```
+
+Shall I proceed with building this?
