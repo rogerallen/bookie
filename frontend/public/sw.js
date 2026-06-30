@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bookie-shell-v9';
+const CACHE_NAME = 'bookie-shell-v10';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -41,12 +41,6 @@ self.addEventListener('fetch', (e) => {
 
   // Cache API index (/api/books) with Network-First strategy to support offline list viewing
   if (url.pathname.endsWith('/api/books')) {
-    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
-    if (isOffline) {
-      e.respondWith(caches.match(e.request));
-      return;
-    }
-
     e.respondWith(
       fetch(e.request)
         .then((response) => {
