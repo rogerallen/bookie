@@ -14,6 +14,19 @@
 - Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) with new **Section 4: Importing Public Domain Books** including usage, examples, and popular book IDs.
 - Tested successfully with Gutenberg IDs 1342 (Pride and Prejudice) and 84 (Frankenstein).
 
+## 2026-07-01
+
+### Web-Based Book Discovery (Discover Panel)
+- Created [backend/src/gutenberg.ts](file:///home/rallen/Documents/Devel/Node/bookie/backend/src/gutenberg.ts) — shared module with download/strip/save logic, used by both CLI and API.
+- Refactored [scripts/import-book.ts](file:///home/rallen/Documents/Devel/Node/bookie/scripts/import-book.ts) to use the shared gutenberg module.
+- Added `GET /api/search/gutenberg` endpoint — proxies search queries to the Gutendex API (avoids CORS, returns JSON).
+- Added `POST /api/import/gutenberg/:id` endpoint — downloads and saves a Gutenberg book by ID.
+- Added Discover side panel UI to [frontend/index.html](file:///home/rallen/Documents/Devel/Node/bookie/frontend/index.html) with search input, results list, and pagination.
+- Added Discover panel CSS to [frontend/src/style.css](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/style.css) — slide-in panel, book cards with cover images, loading/empty states.
+- Added Discover panel logic to [frontend/src/main.ts](file:///home/rallen/Documents/Devel/Node/bookie/frontend/src/main.ts) — debounced search, result rendering, one-click import with bookshelf refresh.
+- Updated [README.md](file:///home/rallen/Documents/Devel/Node/bookie/README.md) with Web-Based Discovery documentation.
+- Bumped to version 2.0.0 with Service Worker cache v11.
+
 ## 2026-06-27
 
 ### Initial Setup & Discussion

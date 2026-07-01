@@ -117,6 +117,16 @@ npm run import -- --help
 
 > **Note:** Downloaded books are saved to `books/gutenberg/` which is gitignored — they stay local to your machine and are not committed to the repository.
 
+### Web-Based Discovery
+
+You can also search and import books directly from the web interface:
+
+1. Click the **"＋ Discover"** button on the bookshelf header.
+2. A side panel slides in — type a search query (title, author, or subject).
+3. Browse results with cover images, authors, and subjects from Project Gutenberg's 70,000+ catalog.
+4. Click **"Add"** on any book to download and install it instantly.
+5. The book appears on your bookshelf immediately — no restart needed!
+
 ---
 
 ## 5. Running the Application

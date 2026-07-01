@@ -42,16 +42,47 @@
         <main class="library-main">
           <div class="section-title-row">
             <h2>Your Bookshelf</h2>
-            <span class="book-count" id="book-count">0 books found</span>
+            <div class="section-title-actions">
+              <button id="discover-btn" class="btn btn-discover" aria-label="Discover books">
+                <span class="icon">＋</span> <span class="text">Discover</span>
+              </button>
+              <span class="book-count" id="book-count">0 books found</span>
+            </div>
           </div>
           <div class="bookshelf-grid" id="bookshelf-grid">
             <!-- Dynamically populated bookshelf cards -->
           </div>
         </main>
 
+        <!-- Discover Panel (slide-in side panel) -->
+        <div id="discover-overlay" class="discover-overlay hidden"></div>
+        <aside id="discover-panel" class="discover-panel hidden">
+          <header class="discover-header">
+            <h2>Discover Books</h2>
+            <button id="discover-close" class="btn btn-icon" aria-label="Close discover panel">✕</button>
+          </header>
+
+          <div class="discover-search">
+            <input type="text" id="discover-search-input" placeholder="Search Project Gutenberg..." aria-label="Search Gutenberg" />
+          </div>
+
+          <div class="discover-results" id="discover-results">
+            <div class="discover-empty" id="discover-empty">
+              <p class="discover-empty-icon">📚</p>
+              <p>Search over 70,000 free public domain books from Project Gutenberg</p>
+            </div>
+          </div>
+
+          <div class="discover-pagination hidden" id="discover-pagination">
+            <button id="discover-prev" class="btn btn-small" disabled>← Previous</button>
+            <span id="discover-page-info" class="discover-page-info"></span>
+            <button id="discover-next" class="btn btn-small" disabled>Next →</button>
+          </div>
+        </aside>
+
         <footer class="library-footer">
           <p>Running on <a href="http://localhost:3001" target="_blank">localhost:3001</a>. Add Markdown files to your <code>books/</code> directory to see them here.</p>
-          <p class="app-version">version 1.9.0</p>
+          <p class="app-version">version 2.0.0</p>
         </footer>
       </div>
 

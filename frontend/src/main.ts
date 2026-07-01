@@ -60,6 +60,19 @@ const DOM = {
   progressContainer: document.getElementById('progress-container') as HTMLDivElement,
   progressFill: document.getElementById('progress-fill') as HTMLDivElement,
   pageIndicator: document.getElementById('page-indicator') as HTMLSpanElement,
+
+  // Discover panel
+  discoverBtn: document.getElementById('discover-btn') as HTMLButtonElement,
+  discoverOverlay: document.getElementById('discover-overlay') as HTMLDivElement,
+  discoverPanel: document.getElementById('discover-panel') as HTMLElement,
+  discoverClose: document.getElementById('discover-close') as HTMLButtonElement,
+  discoverSearchInput: document.getElementById('discover-search-input') as HTMLInputElement,
+  discoverResults: document.getElementById('discover-results') as HTMLDivElement,
+  discoverEmpty: document.getElementById('discover-empty') as HTMLDivElement,
+  discoverPagination: document.getElementById('discover-pagination') as HTMLDivElement,
+  discoverPrev: document.getElementById('discover-prev') as HTMLButtonElement,
+  discoverNext: document.getElementById('discover-next') as HTMLButtonElement,
+  discoverPageInfo: document.getElementById('discover-page-info') as HTMLSpanElement,
 };
 
 const API_BASE = window.location.port === '5173'
@@ -770,7 +783,222 @@ function setupGlobalListeners() {
   window.addEventListener('offline', () => {
     fetchLibrary();
   });
+
+  // --- Discover Panel ---
+  DOM.discoverBtn.addEventListener('click', openDiscoverPanel);
+  DOM.discoverClose.addEventListener('click', closeDiscoverPanel);
+  DOM.discoverOverlay.addEventListener('click', closeDiscoverPanel);
+
+  let discoverSearchTimeout: any;
+  DOM.discoverSearchInput.addEventListener('input', () => {
+    clearTimeout(discoverSearchTimeout);
+    discoverSearchTimeout = setTimeout(() => {
+      const query = DOM.discoverSearchInput.value.trim();
+      if (query.length >= 2) {
+        searchGutenberg(query);
+      } else if (query.length === 0) {
+        showDiscoverEmpty();
+      }
+    }, 300);
+  });
+
+  DOM.discoverSearchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDiscoverPanel();
+  });
+
+  DOM.discoverPrev.addEventListener('click', () => {
+    if (discoverState.previousUrl) {
+      searchGutenbergByUrl(discoverState.previousUrl);
+    }
+  });
+
+  DOM.discoverNext.addEventListener('click', () => {
+    if (discoverState.nextUrl) {
+      searchGutenbergByUrl(discoverState.nextUrl);
+    }
+  });
 }
+
+// --- Discover Panel State ---
+const discoverState = {
+  nextUrl: null as string | null,
+  previousUrl: null as string | null,
+  totalCount: 0,
+  currentPage: 1,
+  importedIds: new Set<number>(),
+};
+
+function openDiscoverPanel() {
+  DOM.discoverOverlay.classList.remove('hidden');
+  DOM.discoverPanel.classList.remove('hidden');
+  // Slight delay to ensure transition plays
+  requestAnimationFrame(() => {
+    DOM.discoverSearchInput.focus();
+  });
+}
+
+function closeDiscoverPanel() {
+  DOM.discoverOverlay.classList.add('hidden');
+  DOM.discoverPanel.classList.add('hidden');
+}
+
+function showDiscoverEmpty() {
+  DOM.discoverResults.innerHTML = `
+    <div class="discover-empty" id="discover-empty">
+      <p class="discover-empty-icon">📚</p>
+      <p>Search over 70,000 free public domain books from Project Gutenberg</p>
+    </div>
+  `;
+  DOM.discoverPagination.classList.add('hidden');
+}
+
+function showDiscoverLoading() {
+  DOM.discoverResults.innerHTML = `
+    <div class="discover-loading">
+      <div class="spinner"></div>
+      <p>Searching Gutenberg...</p>
+    </div>
+  `;
+  DOM.discoverPagination.classList.add('hidden');
+}
+
+async function searchGutenberg(query: string) {
+  showDiscoverLoading();
+  discoverState.currentPage = 1;
+  try {
+    const res = await fetch(`${API_BASE}/search/gutenberg?q=${encodeURIComponent(query)}`);
+    if (!res.ok) throw new Error('Search failed');
+    const data = await res.json();
+    renderDiscoverResults(data);
+  } catch (err) {
+    DOM.discoverResults.innerHTML = `
+      <div class="discover-no-results">
+        <p>⚠️ Search failed. Please try again.</p>
+      </div>
+    `;
+  }
+}
+
+async function searchGutenbergByUrl(pageUrl: string) {
+  showDiscoverLoading();
+  try {
+    const res = await fetch(`${API_BASE}/search/gutenberg?page=${encodeURIComponent(pageUrl)}`);
+    if (!res.ok) throw new Error('Search failed');
+    const data = await res.json();
+    renderDiscoverResults(data);
+  } catch (err) {
+    DOM.discoverResults.innerHTML = `
+      <div class="discover-no-results">
+        <p>⚠️ Failed to load page. Please try again.</p>
+      </div>
+    `;
+  }
+}
+
+function renderDiscoverResults(data: any) {
+  discoverState.nextUrl = data.next;
+  discoverState.previousUrl = data.previous;
+  discoverState.totalCount = data.count;
+
+  const results = data.results || [];
+
+  if (results.length === 0) {
+    DOM.discoverResults.innerHTML = `
+      <div class="discover-no-results">
+        <p>No books found. Try a different search.</p>
+      </div>
+    `;
+    DOM.discoverPagination.classList.add('hidden');
+    return;
+  }
+
+  // Build set of existing book filenames for "in library" detection
+  const existingTitles = new Set(state.books.map(b => b.title.toLowerCase()));
+
+  let html = '';
+  for (const book of results) {
+    const id = book.id;
+    const title = book.title || 'Unknown Title';
+    const authors = (book.authors || []).map((a: any) => a.name).join(', ') || 'Unknown Author';
+    const subjects = (book.subjects || []).slice(0, 3).join(', ');
+    const coverUrl = book.formats?.['image/jpeg'] || '';
+    const isInLibrary = existingTitles.has(title.toLowerCase()) || discoverState.importedIds.has(id);
+
+    const coverHtml = coverUrl
+      ? `<img class="discover-card-cover" src="${escapeHtml(coverUrl)}" alt="" loading="lazy" />`
+      : `<div class="discover-card-cover-placeholder">📖</div>`;
+
+    const buttonHtml = isInLibrary
+      ? `<button class="btn-add-book in-library" disabled>In Library</button>`
+      : `<button class="btn-add-book" data-gutenberg-id="${id}" onclick="window.__importGutenberg(${id}, this)">Add</button>`;
+
+    html += `
+      <div class="discover-card">
+        ${coverHtml}
+        <div class="discover-card-info">
+          <div class="discover-card-title">${escapeHtml(title)}</div>
+          <div class="discover-card-author">${escapeHtml(authors)}</div>
+          ${subjects ? `<div class="discover-card-subjects">${escapeHtml(subjects)}</div>` : ''}
+        </div>
+        <div class="discover-card-actions">
+          ${buttonHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  DOM.discoverResults.innerHTML = html;
+
+  // Update pagination
+  const totalPages = Math.ceil(discoverState.totalCount / 32);
+  if (discoverState.previousUrl) {
+    discoverState.currentPage = Math.max(1, discoverState.currentPage);
+  }
+
+  if (totalPages > 1) {
+    DOM.discoverPagination.classList.remove('hidden');
+    DOM.discoverPrev.disabled = !discoverState.previousUrl;
+    DOM.discoverNext.disabled = !discoverState.nextUrl;
+    DOM.discoverPageInfo.textContent = `${discoverState.totalCount.toLocaleString()} results`;
+  } else {
+    DOM.discoverPagination.classList.add('hidden');
+  }
+}
+
+// Global handler for import button clicks (called from onclick in rendered HTML)
+(window as any).__importGutenberg = async function(id: number, btn: HTMLButtonElement) {
+  btn.disabled = true;
+  btn.className = 'btn-add-book importing';
+  btn.textContent = '...';
+
+  try {
+    const res = await fetch(`${API_BASE}/import/gutenberg/${id}`, { method: 'POST' });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Import failed');
+    }
+
+    await res.json();
+    btn.className = 'btn-add-book added';
+    btn.textContent = '✓ Added';
+    discoverState.importedIds.add(id);
+
+    // Refresh the bookshelf in the background
+    const libRes = await fetch(`${API_BASE}/books`);
+    if (libRes.ok) {
+      state.books = await libRes.json();
+      renderBookshelf(state.books);
+    }
+  } catch (err: any) {
+    btn.className = 'btn-add-book error';
+    btn.textContent = 'Error';
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.className = 'btn-add-book';
+      btn.textContent = 'Add';
+    }, 2000);
+  }
+};
 
 function switchView(view: 'library' | 'reader') {
   state.currentView = view;

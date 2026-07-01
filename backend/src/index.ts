@@ -1,4 +1,5 @@
 import express from 'express';
+import { download, importGutenbergBook } from './gutenberg.js';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
@@ -148,6 +149,53 @@ app.get('/api/books/:filename(*)', (req, res) => {
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to read book file', details: err.message });
+  }
+});
+
+// ---- Gutenberg Search & Import ----
+
+const gutenbergDir = path.join(booksDir, 'gutenberg');
+
+// GET /api/search/gutenberg?q=<query>&page=<url> — Proxy search to Gutendex API
+app.get('/api/search/gutenberg', async (req, res) => {
+  try {
+    const query = req.query.q as string;
+    const pageUrl = req.query.page as string;
+
+    let url: string;
+    if (pageUrl) {
+      // Use the full pagination URL from Gutendex (next/previous)
+      url = pageUrl;
+    } else if (query) {
+      url = `https://gutendex.com/books?search=${encodeURIComponent(query)}&languages=en`;
+    } else {
+      // Default: return popular books
+      url = `https://gutendex.com/books?languages=en`;
+    }
+
+    const data = await download(url);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Failed to search Gutenberg', details: err.message });
+  }
+});
+
+// POST /api/import/gutenberg/:id — Download and save a Gutenberg book
+app.post('/api/import/gutenberg/:id', async (req, res) => {
+  const gutenbergId = req.params.id;
+
+  if (!/^\d+$/.test(gutenbergId)) {
+    return res.status(400).json({ error: 'Invalid Gutenberg ID (must be a number)' });
+  }
+
+  try {
+    const result = await importGutenbergBook(gutenbergId, gutenbergDir);
+    console.log(`[Bookie] Imported: "${result.title}" by ${result.author} (${result.sizeKB} KB)`);
+    res.json(result);
+  } catch (err: any) {
+    console.error(`[Bookie] Import failed for ID ${gutenbergId}:`, err.message);
+    res.status(500).json({ error: 'Failed to import book', details: err.message });
   }
 });
 
