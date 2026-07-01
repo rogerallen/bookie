@@ -16,9 +16,10 @@ export function download(url: string, redirects = 5): Promise<string> {
     if (redirects <= 0) return reject(new Error('Too many redirects'));
 
     client.get(url, (res) => {
-      // Follow redirects
+      // Follow redirects (handle both absolute and relative Location headers)
       if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return resolve(download(res.headers.location, redirects - 1));
+        const redirectUrl = new URL(res.headers.location, url).toString();
+        return resolve(download(redirectUrl, redirects - 1));
       }
 
       if (res.statusCode !== 200) {
